@@ -1,0 +1,130 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+resync
+
+=head1 SYNOPSIS
+
+	resync --fwd=FILE --rev=FILE --type=<A/Q>
+
+		NOTE: only Q implemented so far
+		NOTE2SELF: implement automatic file format detection
+
+		Takes two files and outputs files where only sequences with headers present in both files remain.
+
+		--fwd, --rev: fasta or fastq files
+		--type: one of fasta or fastq; if not specified, fastq is assumed
+	    --help: This info.
+
+	    
+=head1 AUTHOR
+
+luisa.hugerth@scilifelab.se
+
+=cut
+
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use Pod::Usage;
+
+my $help = 0;
+my $verbose = 0;
+my $fwdfile;
+my $revfile;
+my $type = 'q';
+GetOptions(
+  "help!" => \$help,
+  "verbose!" => \$verbose,
+  "type!" => \$type,
+  "fwd=s" => \$fwdfile,
+  "rev=s" => \$revfile
+);
+
+pod2usage(0) if $help;
+
+pod2usage(-msg => "Need a forward file", -exitval => 1) unless $fwdfile;
+open FWD, $fwdfile or die "Can't open $fwdfile: $!";
+
+pod2usage(-msg => "Need a reverse file", -exitval => 1) unless $revfile;
+open REV, $revfile or die "Can't open $revfile: $!";
+
+my $max;
+if ($type eq 'q'){
+	$max = 4;
+}
+ else{
+	$max = 2;
+ }
+
+my %headers;
+
+my $count=1;
+while (my $line = <FWD>){
+	if ($count == 1){
+		$line=~/^(\S+)/;
+		$headers{$1}=1;
+		$count++;
+	}
+	 else{
+		$count++;
+		$count = 1 if ($count == 5);
+	 }
+}
+close FWD;
+
+$revfile=~/(\S+)\.fq/;
+open REV_OUT, ">$1.sync.fq";
+
+$count=1;
+my $doit = 'no';
+while (my $line = <REV>){
+	if ($count == 1){
+		$line=~/^(\S+)/;
+		if (exists ($headers{$1})){
+			delete $headers{$1};
+			$doit = 'yes';
+			print REV_OUT $line;
+		}
+		$count++;
+	}
+	 else{
+		print REV_OUT $line if ($doit eq 'yes');
+		$count++;
+		if ($count == 5){
+			$count = 1;		
+			$doit = 'no';
+		}
+	 }
+}
+
+close REV;
+
+open FWD, $fwdfile;
+$fwdfile=~/(\S+)\.fq/;
+open FWD_OUT, ">$1.sync.fq";
+
+while (my $line = <FWD>){
+	if ($count == 1){
+		$line=~/^(\S+)/;
+		if (!exists ($headers{$1})){
+			$doit = 'yes';
+			print FWD_OUT $line;
+		}
+		$count++;
+	}
+	 else{
+		print FWD_OUT $line if ($doit eq 'yes');
+		$count++;
+		if ($count == 5){
+			$count = 1;		
+			$doit = 'no';
+		}
+	 }
+}
+
+close FWD;
+close FWD_OUT;

@@ -1,0 +1,174 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+sina2otu
+
+=head1 SYNOPSIS
+
+	sina2otu [--help] [--verbose] [--pair] [--clustersize=<size_table]> --sina=<sina_csv_table>
+						 [--sina2=<sina_csv_table] [--size] [--by-taxon]
+
+		Takes 2 tables: one associationg read ID and cluster size, one SINA classification table.
+		 Outputs a table with phylogeny and count.	
+		If pair is activated, it will find the lowest taxonomic consensus between forward and reverse reads.		
+		If size is activated, and clustersize given, it will account for the number of reads in each OTU.
+
+		--help: This info.
+		--clustersize: table in format 
+					><Cluster id>;size=<cluster_size>;
+		--sina, sina2: standard sina classification output
+		--size: use size information. Otherwise, consider all sizes as 1.
+		--by-taxon: output counts for each taxon.
+
+		
+=head1 AUTHOR
+
+luisa.hugerth@scilifelab.se
+
+=cut
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use Pod::Usage;
+
+my $help = 0;
+my $verbose = 0;
+my $sizefile;
+my $sinafile;
+my $phylofile;
+my $othersina;
+my $pair = 0;
+my $size = 0;
+my $by_taxon = 0;
+GetOptions(
+  "help!" => \$help,
+  "verbose!" => \$verbose,
+  "clustersize=s" => \$sizefile,
+  "sina=s" => \$sinafile,
+  "phylo=s" => \$phylofile,
+  "sina2=s" => \$othersina,
+  "pair!" => \$pair,
+  "size!" => \$size,
+  "by-taxon!" => \$by_taxon
+);
+
+pod2usage(0) if $help;
+
+pod2usage(-msg => "Please provide at least one sina file", -exitval => 1) unless $sinafile;
+pod2usade(-msg => "Please provide a size file", -exitval => 1) if ($size and not $sizefile);
+pod2usage(-msg => "Pair usage requires 2 sina files", -exitval => 1) if ($pair and not $othersina);
+open SINA, $sinafile or die "Can't open $sinafile: $!";
+(open SIZE, $sizefile or die "Can't open $sizefile: $!") if $size;
+(open SINA2, $othersina or die "Can't open $othersina: $!") if $pair;
+
+my %sizes;
+if ($size){
+	while (my $line = <SIZE>){
+#		$line=~/^>(\S+);size=(\d+);$/;
+		$line=~/^(\S+)\t(\d+)/;
+		$sizes{$1}=$2;
+	}
+	close SIZE;
+}
+
+my %phylo;
+my $counter=1;
+while (my $line = <SINA>){
+	unless ($line=~/^"job_id"/){
+		chomp $line;
+		my @fields = split(',', $line);
+		my $id =  $fields[0];
+#		$id=~/^(.+);size=\d+;$/;
+#		$id = $1;
+		my $tax = $fields[-5];
+#		$tax =~ s/"//g;
+		$tax =~ s/\r//g;
+		$tax =~ s/ /_/g;
+		$tax = substr ($tax, 1, length($tax)) if ($tax=~/^;/);
+		unless ($pair){
+			my @taxa = split (';', $tax);
+			my $short_tax = $taxa[-1];
+			if ($size){
+				print "OTU_$counter\t$short_tax\t".$sizes{$id}."\t$tax\n" if (exists ($sizes{$id}));
+			}
+			 else{
+				print "OTU_$counter\t$short_tax\t$tax\n"
+			 }
+			$counter++;
+		}
+		 else{
+			$phylo{$id}=$tax;
+		 }	
+	}
+}
+close SINA;
+
+my %tax_counter;
+$counter = 1;
+if ($pair){
+	while (my $line = <SINA2>){
+		unless ($line=~/^"job_id"/){
+#print $line;
+			chomp $line;
+			my @fields = split(',', $line);
+#print @fields."\n";
+			my $id =  $fields[0];
+#print "$id\n";
+#			$id=~/^(.+);size=\d+;$/;
+#			$id = $1;
+			my $tax2 = $fields[-5];
+#			$tax2 =~ s/"//g;
+			$tax2 =~ s/\r//g;
+			$tax2 =~ s/ /_/g;
+			$tax2 = substr ($tax2, 1, length($tax2)) if ($tax2=~/^;/);
+			my $tax=$tax2;
+			my @taxa2 = split (';', $tax2);
+			my $short_tax = $taxa2[-1];
+			if (exists $phylo{$id}){
+				my $tax1 = $phylo{$id};
+				my @taxa1 = split (';', $tax1);
+				my @consensus;
+				my $field_count=0;
+				for my $tax (@taxa1){
+					if (exists $taxa2[$field_count]){
+						if ($tax eq $taxa2[$field_count]){
+							push (@consensus, $tax);
+						}
+						 elsif ($field_count == 0){
+							push (@consensus, "Unclassified");
+						 }
+					}
+					$field_count++;
+				}
+				$tax = join (';',@consensus);
+				$tax = $tax.";";
+			}
+			unless ($by_taxon){
+#print "You didn't ask by taxon\n";
+				if ($size){
+					print "OTU_$counter\t$short_tax\t".$sizes{$id}."\t$tax\n" if (exists ($sizes{$id}));
+				}
+				 else{
+					print "OTU_$counter\t$short_tax\t$tax\n"
+				 }
+				$counter++;
+			}
+			 else{
+				my $clust_size=1;
+				$clust_size=$sizes{$id} if $size;
+				$tax_counter{$tax}+=$clust_size;
+			 }
+		}
+	}
+}
+close SINA2 if $pair;
+
+if ($by_taxon){
+	while (my ($taxon, $count) = each %tax_counter){
+		print "$taxon\t$count\n";
+	}
+}
+

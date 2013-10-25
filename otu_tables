@@ -1,0 +1,163 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+otu_tables
+
+=head1 SYNOPSIS
+
+	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
+
+
+		--samples: folder containing the -usearch_global output for each sample to be analysed,
+				and nothing else (important!)
+		--classification: allrank result from RDP classifier or SINA
+		--threshold: minimum precentage confidence level to retain an RDP classification; default 50
+		--depth: maximum taxonomic depth to retain a SINA classification; default 5
+		--sequences: fasta file with representatives from each OTU
+		--help: This info.
+	    
+=head1 AUTHOR
+
+luisa.hugerth@scilifelab.se
+
+=cut
+
+
+use warnings;
+use strict;
+
+use Bio::SeqIO;
+use Getopt::Long;
+use Pod::Usage;
+
+my $help = 0;
+my $verbose = 0;
+my $samples_folder;
+my $class_file;
+my $sequences;
+my $threshold=50;
+my $depth=5;
+GetOptions(
+  "samples=s" => \$samples_folder,
+  "classification=s" => \$class_file,
+  "threshold=i" => \$threshold,
+  "sequences=s" => \$sequences,
+  "depth=i" => \$depth,
+  "help!" => \$help,
+  "verbose!" => \$verbose,
+);
+
+pod2usage(0) if $help;
+
+pod2usage(-msg => "Need a samples folder", -exitval => 1) unless $samples_folder;
+opendir(DIR, $samples_folder) or die "Cannot open $samples_folder";
+
+pod2usage(-msg => "Need a classification file", -exitval => 1) unless $class_file;
+open CLASS, $class_file;
+
+pod2usage(-msg => "Need a fasta file", -exitval => 1) unless $sequences;
+my $seqfile = Bio::SeqIO->new(-file=>"$sequences", -format => "fasta") or die "Can't open $sequences";
+
+sub rdp_parse{
+	my $line = $_[0];
+	my @samples = @{$_[1]};
+	my $samples_ref = $_[2];
+	my $seq_ref = $_[3];
+	my $threshold = $_[4];
+	my @fields = split(';',$line);
+	my $otu = shift (@fields);
+	my $print="$otu\t";
+	shift @fields; shift @fields; shift @fields;
+	foreach my $sample (@samples){
+		if (exists ${$samples_ref}{$otu}{$sample}){
+			$print = $print.${$samples_ref}{$otu}{$sample}."\t";
+		}
+		 else{
+			$print = $print."0\t";
+		 }
+	}
+	my $count = 0;
+	my $classified = 'F';
+	foreach my $taxon (@fields){
+		unless ($taxon=~/%$/){
+			$fields[$count+1]=~/(\d+)/;
+			my $confidence = $1;
+			if ($confidence >= $threshold){
+				$taxon=~s/ /_/g;
+				$print = $print.$taxon.";";
+				$classified = 'T';
+			}
+		}
+		$count++;
+	}
+	$print = $print."Unclassified;" if $classified eq 'F';
+	print "$print\t".${$seq_ref}{$otu}."\n";
+}
+
+sub silva_parse{
+	my $line = $_[0];
+	my @samples = @{$_[1]};
+	my $samples_ref = $_[2];
+	my $seq_ref = $_[3];
+	my $depth = $_[4];
+	my @fields = split('";"',$line);
+	my $otu = $fields[2];
+	my $print = "$otu\t";
+	foreach my $sample (@samples){
+		if (exists ${$samples_ref}{$otu}{$sample}){
+			$print = $print.${$samples_ref}{$otu}{$sample}."\t";
+		}
+		 else{
+			$print = $print."0\t";
+		 }
+	}
+	my $taxonomy=$fields[-1];
+	my @taxonomy=split(';',$taxonomy);
+#	chop (@taxonomy); #removes final " character
+	my $count = 1;
+	foreach my $taxon (@taxonomy){
+		if ($count <= $depth and $taxon!~/^"/){
+			$taxon=~s/ /_/g;
+			$print = $print.$taxon.";";
+			$count++;
+		}
+	}
+	print "$print\t".${$seq_ref}{$otu}."\n";
+}
+
+my %sequences;
+while (my $seq = $seqfile->next_seq){
+	$sequences{$seq->display_id} = uc($seq->seq);
+}
+
+my %samples;
+my @samples = readdir(DIR);
+@samples = sort (@samples);
+shift @samples; shift @samples;
+print "OTU";
+foreach my $sample (@samples){
+	print "\t$sample";
+	open (SAMPLE, "$samples_folder/$sample") or die "Failed to open $sample";
+	while (my $line = <SAMPLE>){
+		$line=~/(\S+)$/;
+		my $otu=$1;
+		unless ($otu eq '*'){
+			$samples{$otu}{$sample}++;
+		}
+	} 
+	close SAMPLE;
+}
+close DIR;
+print "\tclassification\tsequence\n";
+
+while (my $line = <CLASS>){
+	chomp $line;
+	if ($line=~/^OTU/){
+		rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
+	}
+	 elsif($line=~/^"\d/){
+		silva_parse($line, \@samples, \%samples, \%sequences, $depth);
+	 }
+}
+close CLASS;

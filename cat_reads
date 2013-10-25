@@ -1,0 +1,88 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+cat_reads
+
+=head1 SYNOPSIS
+
+	cat_reads [--help]  [--verbose] [--spacer=STRING] --file1=<fasta> --file2=<fasta>
+
+	 		Concatenates reads with the same ID.
+			Reads only present in one of the files will be outputted separately.
+
+	    --help: This info.
+		--spacer: an optional sequence to be added between reads
+		--file1, file2: fasta files with headers in common
+	    
+=head1 AUTHOR
+
+luisa.hugerth@scilifelab.se
+
+=cut
+
+
+use warnings;
+use strict;
+
+use Bio::SeqIO;
+use Getopt::Long;
+use Pod::Usage;
+
+my $file1;
+my $file2;
+my $spacer = "";
+my $help = 0;
+my $verbose = 0;
+GetOptions(
+  "spacer=s" => \$spacer,
+  "file1=s" => \$file1,
+  "file2=s" => \ $file2,
+  "help!" => \$help,
+  "verbose!" => \$verbose,
+);
+
+pod2usage(0) if $help;
+
+pod2usage(-msg => "Need two fasta files", -exitval => 1) unless $file1 and $file2;
+my $fwd_file = Bio::SeqIO->new(-file=>"$file1", -format => "fasta") or die "Can't open $file1";
+my $rev_file = Bio::SeqIO->new(-file=>"$file2", -format => "fasta") or die "Can't open $file2";
+
+my %fwd_reads;
+while (my $seq = $fwd_file->next_seq){
+	my $id = $seq -> display_id;
+	my $read = $seq -> seq;
+	$fwd_reads{$id} = $read;
+}
+
+$file1=~/^(\S+).fa/;
+my $name_fwd=$1;
+$file2=~/^(\S+).fa/;
+my $name_rev=$1;
+my $bothout = $name_fwd . "+" . $name_rev . ".fa";
+my $fwdout = $name_fwd . "_only.fa";
+my $revout = $name_rev . "_only.fa";
+
+open BOTH, ">$bothout" or die "Can't open outfile $bothout";
+open FWD, ">$fwdout" or die "Can't open outfile $fwdout";
+open REV, ">$revout" or die "Can't open outfile $revout";
+
+while (my $seq = $rev_file->next_seq){
+	my $id = $seq -> display_id;
+	my $rev_read = $seq -> seq;
+	if (exists $fwd_reads{$id}){
+		print BOTH ">$id\n".$fwd_reads{$id}.$spacer.$rev_read."\n";
+		delete ($fwd_reads{$id});
+	}
+	 else{
+		print REV ">$id\n$rev_read\n";
+	 }
+}
+
+while (my ($id, $read) = each(%fwd_reads)){
+	print FWD ">$id\n$read\n";
+}
+
+close BOTH;
+close FWD;
+close REV;
