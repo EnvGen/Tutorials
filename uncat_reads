@@ -6,13 +6,14 @@ uncat_reads
 
 =head1 SYNOPSIS
 
-	uncat_reads [--help]  [--verbose] --spacer=STRING --in=<fasta> [--out1=FILENAME] [--out2=FILENAME]
+	uncat_reads [--help]  [--verbose] [--spacer=STRING] [--length=INT] --in=<fasta> [--out1=FILENAME] [--out2=FILENAME]
 
 	 		Concatenates reads with the same ID.
 			Reads only present in one of the files will be outputted separately.
 
-	    --help: This info.
-		--spacer: sequence at which to split reads
+	    	--help: This info.
+		--spacer: sequence at which to split reads; alternatively, supply
+		--length: length of forward reads; to be used instead of spacer
 		--in: fasta file whose reads are to be split
 		--out1, out2: name of files with each half; if not stated, out.1.fa and out.2.fa are used
 	    
@@ -32,12 +33,14 @@ use Pod::Usage;
 
 my $fastafile;
 my $spacer;
+my $length = 0;
 my $out1 = "out.1.fa";
 my $out2 = "out.2.fa";
 my $help = 0;
 my $verbose = 0;
 GetOptions(
   "spacer=s" => \$spacer,
+  "length=i" => \$length;
   "in=s" => \$fastafile,
   "out1=s" => \ $out1,
   "out2=s" => \ $out2,
@@ -56,10 +59,18 @@ open OUT1, ">$out1" or die "Can't open $out1";
 open OUT2, ">$out2" or die "Can't open $out2";
 
 while (my $seq = $infile->next_seq){
-	my $read = $seq -> seq;
+	my $sequence = $seq -> seq;
 	my $id = $seq -> display_id;
-	if ($read=~/$spacer/){
-		my @reads=split(/$spacer/,$read);
+        if ($length>0){
+	        my $seq_length=length($sequence);
+                my $read1=substr($sequence, 0, $length);
+                $sequence=~/^$read1(\w*)/;
+                my $read2=$1;
+                print OUT1 ">$id\n".$read1."\n";
+                print OUT2 ">$id\n".$read2."\n";
+        }
+	elsif ($sequence=~/$spacer/){
+		my @reads=split(/$spacer/,$sequence);
 		print OUT1 ">$id\n".$reads[0]."\n";
 		print OUT2 ">$id\n".$reads[1]."\n";
 	}
@@ -70,4 +81,3 @@ while (my $seq = $infile->next_seq){
 
 close OUT1;
 close OUT2;
-
