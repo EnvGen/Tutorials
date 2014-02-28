@@ -40,7 +40,7 @@ my $help = 0;
 my $verbose = 0;
 GetOptions(
   "spacer=s" => \$spacer,
-  "length=i" => \$length,
+  "length=i" => \$length;
   "in=s" => \$fastafile,
   "out1=s" => \ $out1,
   "out2=s" => \ $out2,
