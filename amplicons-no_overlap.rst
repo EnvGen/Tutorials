@@ -1,4 +1,3 @@
-
 Processing amplicons with non-overlapping reads
 ===============================================
 
@@ -59,14 +58,18 @@ Example:
 
 
 **STEP 5: Concatenating reads**
-	In this step we will concatenate the forward and reverse reads into a single artificial amplicon. We will include a separator between them, so they can be split later. Due to downstream applications, this separator can only contain the letters A, C, T, G, N. Keep in mind that the spacer you choose should be rare (long) enough that it's not likely to appear at random in your reads.
+	In this step we will concatenate the forward and reverse reads into a single artificial amplicon. You can include a separator between them, so they can be split later. Due to downstream applications, this separator can only contain the letters A, C, T, G, N. Keep in mind that the spacer you choose should be rare (long) enough that it's not likely to appear at random in your reads. However, if your forward reads have all been trimmed to the same size, you can skip the spacer and do the splitting based on length.
 
 The command:
-	perl cat_reads –spacer=<spacer_string> --file1=<forwad_reads> --file2=<reverse_reads>
+	perl cat_reads --spacer=<spacer_string> --file1=<forwad_reads> --file2=<reverse_reads>
+or
+	perl cat_reads --file1=<forward_reads> --file2=<reverse_reads>
+
 
 Example
-	perl cat_reads –spacer='NNNNNNN' –file1=reads_R1.fa –file2=reads_R2.fa > reads.cat.fa
-
+	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa > reads.cat.fa
+or
+	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa > reads.cat.fa
 
 *PART II: CLUSTERING*
 ---------------------
@@ -144,10 +147,14 @@ Example:
 	Now that we've assigned the reads to OTU, we have to split them again to be able to assign them a taxonomy. 
 
 The command:
-	perl uncat_reads –spacer=<spacer_string> --in=<infile> --out1=<fwd_file> --out2=<rev_file>
+	perl uncat_reads --spacer=<spacer_string> --in=<infile> --out1=<fwd_file> --out2=<rev_file>
+or	
+	perl uncat_reads --length=<length> --in=<infile> --out1=<fwd_file> --out2=<rev_file>
 
 Example:
 	perl uncat_reads --spacer='NNNNNNN' --in=all.97.fa --out1=all_R1.97.fa	--out2=all_R2.97.fa
+or
+	perl uncat_reads --length=220 --in=all.97.fa --out1=all_R1.97.fa --out2=all_R2.97.fa
 
 
 **STEP 13: Classifying OTU**
