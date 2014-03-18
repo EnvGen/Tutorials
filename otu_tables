@@ -6,13 +6,14 @@ otu_tables
 
 =head1 SYNOPSIS
 
-	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
+	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] --classifier=<sina/rdp> --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
 
 
 		--samples: folder containing the -usearch_global output for each sample to be analysed,
 				and nothing else (important!)
 		--classification: allrank result from RDP classifier or SINA
-		--threshold: minimum precentage confidence level to retain an RDP classification; default 50
+		--classifier: sina or rdp, whichever was used to generate the classification; default sina
+		--threshold: minimum precentage confidence level to retain an RDP classification; default 70
 		--depth: maximum taxonomic depth to retain a SINA classification; default 5
 		--sequences: fasta file with representatives from each OTU
 		--help: This info.
@@ -36,12 +37,14 @@ my $verbose = 0;
 my $samples_folder;
 my $class_file;
 my $sequences;
-my $threshold=50;
+my $classifier="sina";
+my $threshold=70;
 my $depth=5;
 GetOptions(
   "samples=s" => \$samples_folder,
   "classification=s" => \$class_file,
   "threshold=i" => \$threshold,
+  "classifier=s" => \$classifier,
   "sequences=s" => \$sequences,
   "depth=i" => \$depth,
   "help!" => \$help,
@@ -55,6 +58,8 @@ opendir(DIR, $samples_folder) or die "Cannot open $samples_folder";
 
 pod2usage(-msg => "Need a classification file", -exitval => 1) unless $class_file;
 open CLASS, $class_file;
+
+pod2usage(-msg => "Classifier must be either rdp or sina", -exitval => 1) unless (($classifier eq "sina") or ($classifier eq "rdp"));
 
 pod2usage(-msg => "Need a fasta file", -exitval => 1) unless $sequences;
 my $seqfile = Bio::SeqIO->new(-file=>"$sequences", -format => "fasta") or die "Can't open $sequences";
@@ -101,8 +106,9 @@ sub silva_parse{
 	my $samples_ref = $_[2];
 	my $seq_ref = $_[3];
 	my $depth = $_[4];
-	my @fields = split('";"',$line);
-	my $otu = $fields[2];
+	chomp $line;
+	my @fields = split(',',$line);
+	my $otu = $fields[0];
 	my $print = "$otu\t";
 	foreach my $sample (@samples){
 		if (exists ${$samples_ref}{$otu}{$sample}){
@@ -112,9 +118,8 @@ sub silva_parse{
 			$print = $print."0\t";
 		 }
 	}
-	my $taxonomy=$fields[-1];
+	my $taxonomy=$fields[-5];
 	my @taxonomy=split(';',$taxonomy);
-#	chop (@taxonomy); #removes final " character
 	my $count = 1;
 	foreach my $taxon (@taxonomy){
 		if ($count <= $depth and $taxon!~/^"/){
@@ -135,9 +140,7 @@ my %samples;
 my @samples = readdir(DIR);
 @samples = sort (@samples);
 shift @samples; shift @samples;
-print "OTU";
 foreach my $sample (@samples){
-	print "\t$sample";
 	open (SAMPLE, "$samples_folder/$sample") or die "Failed to open $sample";
 	while (my $line = <SAMPLE>){
 		$line=~/(\S+)$/;
@@ -149,14 +152,17 @@ foreach my $sample (@samples){
 	close SAMPLE;
 }
 close DIR;
-print "\tclassification\tsequence\n";
+#print "\tclassification\tsequence\n";
+
+print "OTU\t@samples\tTaxonomy\tCentroid\n";
 
 while (my $line = <CLASS>){
 	chomp $line;
-	if ($line=~/^OTU/){
+	$"="\t"; ## Sets the separator for arrays as tab
+	if ($classifier eq "rdp"){
 		rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
 	}
-	 elsif($line=~/^"\d/){
+	 elsif(($classifier eq "sina") and ($line!~/name/)){
 		silva_parse($line, \@samples, \%samples, \%sequences, $depth);
 	 }
 }
