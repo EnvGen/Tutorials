@@ -1,4 +1,3 @@
-
 Processing amplicons with overlapping reads
 ===========================================
 
@@ -138,7 +137,7 @@ Example:
 
 
 **STEP 11: Classifying OTU**
-	If you're working with 16S, I recommend using the online RDP classifier: http://rdp.cme.msu.edu/classifier/classifier.jsp. Download the fullrank result when you're done. You can also install RDP and run it locally. If you're working with 18S, 23S or 28S, I recommend the SINA classifier. Its online version only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally: http://www.arb-silva.de/aligner/.
+	If you're working with 16S, I recommend using the online RDP classifier: http://rdp.cme.msu.edu/classifier/classifier.jsp. Download the fullrank result when you're done. You can also install RDP and run it locally. If you're working with 18S, 23S or 28S, I recommend the SINA classifier. Its online version (http://www.arb-silva.de/aligner/) only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally: http://www.arb-silva.de/no_cache/download/archive/SINA/builds/2013/build-103/
 
 
 **STEP 12: Creating an OTU table**
