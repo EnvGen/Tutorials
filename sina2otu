@@ -68,7 +68,7 @@ while (my $line = <SINA>){
 		unless ($pair){
 			my @taxa = split (';', $tax);
 			my $short_tax = $taxa[-1];
-			print "OTU_$counter\t$short_tax\t$tax\n"
+			print "OTU_$counter\t$short_tax\t$tax\n";
 			$counter++;
 		}
 		 else{
@@ -113,7 +113,7 @@ if ($pair){
 				$tax = $tax.";";
 			}
 			unless ($by_taxon){
-				print "OTU_$counter\t$short_tax\t$tax\n"
+				print "OTU_$counter\t$short_tax\t$tax\n";
 				$counter++;
 			}
 			 else{
