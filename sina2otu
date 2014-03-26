@@ -57,7 +57,7 @@ open SINA, $sinafile or die "Can't open $sinafile: $!";
 my %phylo;
 my $counter=1;
 while (my $line = <SINA>){
-	unless ($line=~/^"job_id"/){
+	unless ($line=~/^"job_id"/ or $line=~/^name/){
 		chomp $line;
 		my @fields = split(',', $line);
 		my $id =  $fields[0];
@@ -82,7 +82,7 @@ my %tax_counter;
 $counter = 1;
 if ($pair){
 	while (my $line = <SINA2>){
-		unless ($line=~/^"job_id"/){
+		unless ($line=~/^"job_id"/ or $line=~/^name/){
 			chomp $line;
 			my @fields = split(',', $line);
 			my $id =  $fields[0];
