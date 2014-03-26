@@ -58,7 +58,7 @@ GetOptions(
 pod2usage(0) if $help;
 
 pod2usage(-msg => "Please provide at least one sina file", -exitval => 1) unless $sinafile;
-pod2usade(-msg => "Please provide a size file", -exitval => 1) if ($size and not $sizefile);
+pod2usage(-msg => "Please provide a size file", -exitval => 1) if ($size and not $sizefile);
 pod2usage(-msg => "Pair usage requires 2 sina files", -exitval => 1) if ($pair and not $othersina);
 open SINA, $sinafile or die "Can't open $sinafile: $!";
 (open SIZE, $sizefile or die "Can't open $sizefile: $!") if $size;
