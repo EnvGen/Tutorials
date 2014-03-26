@@ -46,29 +46,24 @@ Example:
 If this doesn't work (are working on a Mac?) try:
 	grep '^@HWI' reads_R1.fq -A1 | grep -v '^--$' | sed 's/@/>/' > reads_R1.fa
 
-
-**STEP 4: Synchronizing**
-   ---this step was unnecessary and has been removed---
-
-
-**STEP 5: Concatenating reads**
+**STEP 4: Concatenating reads**
 	In this step we will concatenate the forward and reverse reads into a single artificial amplicon. You can include a separator between them, so they can be split later. Due to downstream applications, this separator can only contain the letters A, C, T, G, N. Keep in mind that the spacer you choose should be rare (long) enough that it's not likely to appear at random in your reads. However, if your forward reads have all been trimmed to the same size, you can skip the spacer and do the splitting based on length. Notice that the outfile names are defined automatically; this will be changed soon.
 
 The command:
-	perl cat_reads --spacer=<spacer_string> --file1=<forwad_reads> --file2=<reverse_reads>
+	perl cat_reads --spacer=<spacer_string> --revcom --file1=<forwad_reads> --file2=<reverse_reads>
 or
-	perl cat_reads --file1=<forward_reads> --file2=<reverse_reads>
+	perl cat_reads --revcom --file1=<forward_reads> --file2=<reverse_reads>
 
 
 Example
-	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa
+	perl cat_reads --revcom --file1=reads_R1.fa --file2=reads_R2.fa > reads_cat.fa
 or
-	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa
+	perl cat_reads --revcom --file1=reads_R1.fa --file2=reads_R2.fa
 
 *PART II: CLUSTERING*
 ---------------------
 	
-**STEP 6: File concatenation**
+**STEP 5: File concatenation**
 	In most applications, you want to compare communities from different environments, conditions etc. For this, you have to have the same OTU defined for all samples. Therefore, at this point we concatenate all files.
 
 The command:
@@ -77,7 +72,7 @@ The command:
 Example:
 	cat reads1.fa reads2.fa reads3.fa > all.fa
 
-**STEP 7: Dereplication**
+**STEP 6: Dereplication**
 	Here we combine all reads that are identical into a single one, keeping track of how many copies there are of each one. This saves a lot of time down the road.
 
 The command:
@@ -87,7 +82,7 @@ Example:
 	./usearch7-derep_fulllength all.fa -output all.derep.fa -uc all.derep.uc -sizeout
 
 
-**STEP 8: Sorting**
+**STEP 7: Sorting**
 	Usearch reads the fasta file in order, assigning each sequence to a cluster as it finds it. Since a sequence that has been read in many copies is most likely to be right, starting by the most frequent sequences and working your way down increases the chances the OTU found are real. We will therefore sort sequences from most frequent to least. At this point you can also throw away sequences that haven't been found a minimal amount of times. Discarding singletons will increase your precision and speed up the process, with a small lost of sensitivity. If you choose not to throw away any sequences, don't write the parameter -minsize.
 
 The command:
@@ -97,7 +92,7 @@ Example:
 	./usearch7 -sortbysize all.derep.fa -output all.sort.fa -minsize 2
 
 
-**STEP 9: Clustering**
+**STEP 8: Clustering**
 	Here we cluster our reads by similarity. Usearch uses average-linkage clustering, which means that it is possible that two sequences that are closer to each other than the similarity threshold can still end up in different OTU. One way to minimize this risk is to cluster at a higher similarity first, and then gradually expand these clusters.
 	You can speed up your process by informing Usearch how many bases it can ignore in the beginning of the read; you can do that for the portion of your forward primer that has no degeneracies.
 	If you're having memory problems, you can use -cluster_smallmem instead of cluster_fast. This is slightly less accurate. 
@@ -113,21 +108,21 @@ Example:
 	./usearch6 -cluster_fast all.98.fa -id 0.97 -uc all.97.uc -idprefix 5 –centroids all.97.fa -sizein -sizeout
 
 
-**STEP 10: Assigning reads to OTU**
-	We will now look at each of the uc files generated and combine them to determine the number of reads per OTU. At this point, take the opportunity to make a directory just for your new cluster files. This is important downstream.
+**STEP 9: Assigning reads to OTU**
+	We will now look at each of our original fasta files and assign them to OTU. At this point, take the opportunity to make a directory just for your new cluster files. This is important downstream. You're also requested to say how similar your sample must be to the centroid. This must be compatible with the radius you used for clustering. For example, if you used a radius of 3%, use now a similarity of 0.97.
+
+	In this step you may see that most reads are identified as chimera and just a small part are being recruited to OTU. That's a bug in the screen output that won't affect your data.
 
 The command:
-	perl uc_tables --fine=<finer_clustering> --coarse=<coarser_clustering> > <outfile>
+
+	./usearch7 -usearch_global <sample file> -db <numbered out file> -strand 	<plus/minus/both> -id <similarity to the centroid> -uc <outfile>
 
 Example:
-	perl uc_tables –fine=all.derep.uc –coarse=all.99.uc > all.100+99.uc
 
-	perl uc_tables –fine=all.100+99.uc –coarse=all.98.uc > all.100+98.uc
-
-	perl uc_tables –fine=all.100+98.uc –coarse=all.97.uc > all.100+97.uc
+	./usearch7 -usearch_global reads1.merge.fa -db otus97.num.fa -strand plus -id 0.97 -uc 	clusters/reads1.uc
 
 
-**STEP 11: Renaming OTU**
+**STEP 10: Renaming OTU**
 	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded from http://drive5.com/python/. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial.
 
 The command:
@@ -137,7 +132,7 @@ Example:
 	python fasta_number.py otus97.fa OTU_ > otus97num.fa
 
 
-**STEP 12: Splitting the concatenated reads**
+**STEP 11: Splitting the concatenated reads**
 	Now that we've assigned the reads to OTU, we have to split them again to be able to assign them a taxonomy. 
 
 The command:
@@ -151,11 +146,11 @@ or
 	perl uncat_reads --length=220 --in=all.97.fa --out1=all_R1.97.fa --out2=all_R2.97.fa
 
 
-**STEP 13: Classifying OTU**
+**STEP 12: Classifying OTU**
 	There are many tools for assigning taxonomy to a read. Here we use the SINA classifier. Its online version only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally: http://www.arb-silva.de/aligner/
 
 
-**STEP 14: Parsing taxonomy**
+**STEP 13: Parsing taxonomy**
 	The taxonomy assigned to a forward read won't always agree with the reverse read. What we do here is to take the part in which both agree.
 
 The command:
@@ -165,14 +160,14 @@ Example:
 	sina2otu --pair --size --sina=all_R1.97.csv –sina2=all_R2.97.csv > all.97.csv
 
 
-**STEP 15: Creating an OTU table**
+**STEP 14: Creating an OTU table**
 	Here we produce a table with OTUS on the lines, samples on the columns and the classification for each read and the sequence of the representative at the end of each line. You can choose to stop the taxonomy at a certain level – default is 5, or approximately class. If you want the full taxonomy, set the –depth parameter to a very large number.
 	With online SINA you can choose different databases to use (EMBL, Greengenes, LTP, RDP and Silva, in this order). This script will only consider the last classification for each line, so consider that when choosing which databases to use.
 	Every classification file that you want included in your OTU table should be in the same folder, and no other files should be in it.
 
 
 The command:
-	perl otu_tables --depth=<INTEGER> --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA>
+	perl otu_tables --parsed --depth=<INTEGER> --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA>
 
 Example:
-	perl otu_tables –depth=5 –samples=all_reads --classification=otus97.csv –sequences=otus97.num.fa
+	perl otu_tables --parsed --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa
