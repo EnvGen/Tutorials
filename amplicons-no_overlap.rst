@@ -48,17 +48,11 @@ If this doesn't work (are working on a Mac?) try:
 
 
 **STEP 4: Synchronizing**
-	If you've chosen to use the -fastq_maxee option in the previous step, you now have some reads for which you only have the forward reads, others with just the reverse. Therefore, I've written a script that will throw away every read that isn't present in both the forward (R1) and the reverse (R2) files. You can download this script and all other Perl scripts described here from github.com/EnvGen/Tutorials. This script will automatically choose the name for the output files by adding '.sync.fq' to the end.
-
-The command:
-	perl resync --fwd=<forward_reads> –rev=<reverse_reads>
-
-Example:
-	perl resync –fwd=reads_R1.trim.fq –rev=reads_R2.trim.fq
+   ---this step was unnecessary and has been removed---
 
 
 **STEP 5: Concatenating reads**
-	In this step we will concatenate the forward and reverse reads into a single artificial amplicon. You can include a separator between them, so they can be split later. Due to downstream applications, this separator can only contain the letters A, C, T, G, N. Keep in mind that the spacer you choose should be rare (long) enough that it's not likely to appear at random in your reads. However, if your forward reads have all been trimmed to the same size, you can skip the spacer and do the splitting based on length.
+	In this step we will concatenate the forward and reverse reads into a single artificial amplicon. You can include a separator between them, so they can be split later. Due to downstream applications, this separator can only contain the letters A, C, T, G, N. Keep in mind that the spacer you choose should be rare (long) enough that it's not likely to appear at random in your reads. However, if your forward reads have all been trimmed to the same size, you can skip the spacer and do the splitting based on length. Notice that the outfile names are defined automatically; this will be changed soon.
 
 The command:
 	perl cat_reads --spacer=<spacer_string> --file1=<forwad_reads> --file2=<reverse_reads>
@@ -67,9 +61,9 @@ or
 
 
 Example
-	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa > reads.cat.fa
+	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa
 or
-	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa > reads.cat.fa
+	perl cat_reads --file1=reads_R1.fa --file2=reads_R2.fa
 
 *PART II: CLUSTERING*
 ---------------------
