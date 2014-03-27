@@ -198,7 +198,7 @@ while (my $line = <CLASS>){
 		silva_parse($line, \@samples, \%samples, \%sequences, $depth);
 	 }
 	 elsif(($classifier eq "parsed") and ($line!~/name/)){
-		silva_parse($line, \@samples, \%samples, \%sequences, $depth);
+		parsed_parse($line, \@samples, \%samples, \%sequences, $depth);
 	 }
 }
 close CLASS;
