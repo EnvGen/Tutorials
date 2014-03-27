@@ -185,13 +185,12 @@ foreach my $sample (@samples){
 	close SAMPLE;
 }
 close DIR;
-#print "\tclassification\tsequence\n";
 
+$"="\t"; ## Sets the separator for arrays as tab
 print "OTU\t@samples\tTaxonomy\tCentroid\n";
 
 while (my $line = <CLASS>){
 	chomp $line;
-	$"="\t"; ## Sets the separator for arrays as tab
 	if ($classifier eq "rdp"){
 		rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
 	}
