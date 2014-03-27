@@ -6,15 +6,17 @@ sina2otu
 
 =head1 SYNOPSIS
 
-	sina2otu [--help] [--verbose] [--pair] --sina=<sina_csv_table> [--sina2=<sina_csv_table>] [--by-taxon]
+	sina2otu [--help] [--verbose] [--pair] [--number] --sina=<sina_csv_table> [--sina2=<sina_csv_table>] [--by-taxon]
 
 		Takes 2 tables: one associationg read ID and cluster size, one SINA classification table.
-		 Outputs a table with phylogeny and count.	
+		Outputs a table with phylogeny and read counts.	
 		If pair is activated, it will find the lowest taxonomic consensus between forward and reverse reads.		
 
-		--help: This info.
-		--sina, sina2: standard sina classification output
-		--by-taxon: output counts for each taxon.
+			--help: This info.
+			--pair: two sina files with matching sequence ID will be given
+			--number: replace the headers in sina files for OTU_1, OTU_2....
+			--sina, sina2: standard sina classification output
+			--by-taxon: output counts for each taxon.
 
 		
 =head1 AUTHOR
@@ -32,17 +34,17 @@ use Pod::Usage;
 my $help = 0;
 my $verbose = 0;
 my $sinafile;
-my $phylofile;
 my $othersina;
+my $number;
 my $pair = 0;
 my $by_taxon = 0;
 GetOptions(
   "help!" => \$help,
   "verbose!" => \$verbose,
   "sina=s" => \$sinafile,
-  "phylo=s" => \$phylofile,
   "sina2=s" => \$othersina,
   "pair!" => \$pair,
+  "number!" => $number,
   "by-taxon!" => \$by_taxon
 );
 
@@ -68,7 +70,8 @@ while (my $line = <SINA>){
 		unless ($pair){
 			my @taxa = split (';', $tax);
 			my $short_tax = $taxa[-1];
-			print "OTU_$counter\t$short_tax\t$tax\n";
+			$id = "OTU_$counter" if $number;
+			print "$id\t$short_tax\t$tax\n";
 			$counter++;
 		}
 		 else{
@@ -113,7 +116,8 @@ if ($pair){
 				$tax = $tax.";";
 			}
 			unless ($by_taxon){
-				print "OTU_$counter\t$short_tax\t$tax\n";
+				$id = "OTU_$counter" if $number;
+				print "$id\t$short_tax\t$tax\n";
 				$counter++;
 			}
 			 else{
