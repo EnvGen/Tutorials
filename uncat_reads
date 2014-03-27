@@ -8,8 +8,7 @@ uncat_reads
 
 	uncat_reads [--help]  [--verbose] [--spacer=STRING] [--length=INT] --in=<fasta> [--out1=FILENAME] [--out2=FILENAME]
 
-	 		Concatenates reads with the same ID.
-			Reads only present in one of the files will be outputted separately.
+	 		Splits reads at a given length or separator.
 
 	    	--help: This info.
 		--spacer: sequence at which to split reads; alternatively, supply
