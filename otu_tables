@@ -60,7 +60,7 @@ opendir(DIR, $samples_folder) or die "Cannot open $samples_folder";
 pod2usage(-msg => "Need a classification file", -exitval => 1) unless $class_file;
 open CLASS, $class_file;
 
-pod2usage(-msg => "Classifier must be either rdp or sina", -exitval => 1) unless (($classifier eq "sina") or ($classifier eq "rdp"));
+pod2usage(-msg => "Classifier must be rdp, sina or parsed", -exitval => 1) unless (($classifier eq "sina") or ($classifier eq "rdp") or ($classifier eq "parsed"));
 
 pod2usage(-msg => "Need a fasta file", -exitval => 1) unless $sequences;
 my $seqfile = Bio::SeqIO->new(-file=>"$sequences", -format => "fasta") or die "Can't open $sequences";

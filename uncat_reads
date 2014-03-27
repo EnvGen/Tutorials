@@ -8,8 +8,7 @@ uncat_reads
 
 	uncat_reads [--help]  [--verbose] [--spacer=STRING] [--length=INT] --in=<fasta> [--out1=FILENAME] [--out2=FILENAME]
 
-	 		Concatenates reads with the same ID.
-			Reads only present in one of the files will be outputted separately.
+	 		Splits reads at a given length or separator.
 
 	    	--help: This info.
 		--spacer: sequence at which to split reads; alternatively, supply
@@ -33,7 +32,7 @@ use Pod::Usage;
 
 my $fastafile;
 my $spacer;
-my $length = 0;
+my $length;
 my $out1 = "out.1.fa";
 my $out2 = "out.2.fa";
 my $help = 0;
@@ -53,7 +52,7 @@ pod2usage(0) if $help;
 pod2usage(-msg => "Need an infile", -exitval => 1) unless $fastafile;
 my $infile = Bio::SeqIO->new(-file=>"$fastafile", -format => "fasta") or die "Can't open $fastafile";
 
-pod2usage(-msg => "Need a spacer", -exitval => 1) unless $spacer;
+pod2usage(-msg => "Need a spacer or length", -exitval => 1) unless ($spacer or $length);
 
 open OUT1, ">$out1" or die "Can't open $out1";
 open OUT2, ">$out2" or die "Can't open $out2";

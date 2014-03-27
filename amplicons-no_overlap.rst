@@ -141,9 +141,9 @@ or
 	perl uncat_reads --length=<length> --in=<infile> --out1=<fwd_file> --out2=<rev_file>
 
 Example:
-	perl uncat_reads --spacer='NNNNNNN' --in=all.97.fa --out1=all_R1.97.fa	--out2=all_R2.97.fa
+	perl uncat_reads --spacer='NNNNNNN' --in=otus97.num.fa --out1=otus97_R1.fa	--out2=otus97_R2.fa
 or
-	perl uncat_reads --length=220 --in=all.97.fa --out1=all_R1.97.fa --out2=all_R2.97.fa
+	perl uncat_reads --length=220 --in=otus97.num.fa --out1=otus97_R1.fa --out2=otus97_R2.fa
 
 
 **STEP 12: Classifying OTU**
@@ -154,10 +154,10 @@ or
 	The taxonomy assigned to a forward read won't always agree with the reverse read. What we do here is to take the part in which both agree.
 
 The command:
-	sina2otu --pair --size --sina=<sina_csv_table> --sina2=<sina_csv_table> > <outfile>
+	sina2otu --pair --sina=<sina_csv_table> --sina2=<sina_csv_table> > <outfile>
 
 Example:
-	sina2otu --pair --size --sina=all_R1.97.csv –sina2=all_R2.97.csv > all.97.csv
+	sina2otu --pair --sina=all_R1.97.csv –sina2=all_R2.97.csv > all.97.csv
 
 
 **STEP 14: Creating an OTU table**
