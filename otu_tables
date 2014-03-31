@@ -191,14 +191,14 @@ print "OTU\t@samples\tTaxonomy\tCentroid\n";
 
 while (my $line = <CLASS>){
 	chomp $line;
-	if ($classifier eq "rdp"){
+	if (($classifier eq "rdp" and ($line!~/(#|Classifier|Taxonomical|Query File|Submit|Confidence|Symbol)/)){
 		rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
 	}
-	 elsif(($classifier eq "sina") and ($line!~/name/)){
+	 elsif(($classifier eq "sina") and ($line!~/(#|name|job_id)/)){
 		silva_parse($line, \@samples, \%samples, \%sequences, $depth);
 	 }
-	 elsif(($classifier eq "parsed") and ($line!~/name/)){
-		silva_parse($line, \@samples, \%samples, \%sequences, $depth);
+	 elsif(($classifier eq "parsed") and ($line!~/(#|name|job_id)/)){
+		parsed_parse($line, \@samples, \%samples, \%sequences, $depth);
 	 }
 }
 close CLASS;
