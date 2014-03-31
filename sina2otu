@@ -44,7 +44,7 @@ GetOptions(
   "sina=s" => \$sinafile,
   "sina2=s" => \$othersina,
   "pair!" => \$pair,
-  "number!" => $number,
+  "number!" => \$number,
   "by-taxon!" => \$by_taxon
 );
 
@@ -95,11 +95,11 @@ if ($pair){
 			$tax2 = substr ($tax2, 1, length($tax2)) if ($tax2=~/^;/);
 			my $tax=$tax2;
 			my @taxa2 = split (';', $tax2);
-			my $short_tax = $taxa2[-1];
+			my $short_tax;
+			my @consensus;
 			if (exists $phylo{$id}){
 				my $tax1 = $phylo{$id};
 				my @taxa1 = split (';', $tax1);
-				my @consensus;
 				my $field_count=0;
 				for my $tax (@taxa1){
 					if (exists $taxa2[$field_count]){
@@ -110,11 +110,18 @@ if ($pair){
 							push (@consensus, "Unclassified");
 						 }
 					}
+					 else{
+						@consensus=@taxa1;
+					 }
 					$field_count++;
 				}
-				$tax = join (';',@consensus);
-				$tax = $tax.";";
-			}
+			} 
+			 else{
+				@consensus=@taxa2;
+			 }
+			$tax = join (';',@consensus);
+                        $tax = $tax.";";
+                        $short_tax = $consensus[-1];
 			unless ($by_taxon){
 				$id = "OTU_$counter" if $number;
 				print "$id\t$short_tax\t$tax\n";
