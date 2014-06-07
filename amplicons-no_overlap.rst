@@ -92,7 +92,7 @@ Example:
 	./usearch7 -sortbysize all.derep.fa -output all.sort.fa -minsize 2
 
 
-**STEP 8: Clustering**
+**STEP 9: Clustering**
 	Here we cluster our reads by similarity. Usearch uses average-linkage clustering, which means that it is possible that two sequences that are closer to each other than the similarity threshold can still end up in different OTU. One way to minimize this risk is to cluster at a higher similarity first, and then gradually expand these clusters.
 	You can speed up your process by informing Usearch how many bases it can ignore in the beginning of the read; you can do that for the portion of your forward primer that has no degeneracies.
 	If you're having memory problems, you can use -cluster_smallmem instead of cluster_fast. This is slightly less accurate. 
@@ -108,7 +108,17 @@ Example:
 	./usearch6 -cluster_fast all.98.fa -id 0.97 -uc all.97.uc -idprefix 5 –centroids all.97.fa -sizein -sizeout
 
 
-**STEP 9: Assigning reads to OTU**
+
+**STEP 10: Renaming OTU**
+	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded from http://drive5.com/python/. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial.
+
+The command:
+	python fasta_number.py <infile> <prefix> > <outfile>
+
+Example:
+	python fasta_number.py otus97.fa OTU_ > otus97num.fa
+
+**STEP 10: Assigning reads to OTU**
 	We will now look at each of our original fasta files and assign them to OTU. At this point, take the opportunity to make a directory just for your new cluster files. This is important downstream. You're also requested to say how similar your sample must be to the centroid. This must be compatible with the radius you used for clustering. For example, if you used a radius of 3%, use now a similarity of 0.97.
 
 	In this step you may see that most reads are identified as chimera and just a small part are being recruited to OTU. That's a bug in the screen output that won't affect your data.
@@ -120,16 +130,6 @@ The command:
 Example:
 
 	./usearch7 -usearch_global reads1.merge.fa -db otus97.num.fa -strand plus -id 0.97 -uc 	clusters/reads1.uc
-
-
-**STEP 10: Renaming OTU**
-	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded from http://drive5.com/python/. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial.
-
-The command:
-	python fasta_number.py <infile> <prefix> > <outfile>
-
-Example:
-	python fasta_number.py otus97.fa OTU_ > otus97num.fa
 
 
 **STEP 11: Splitting the concatenated reads**
@@ -144,6 +144,7 @@ Example:
 	perl uncat_reads --spacer='NNNNNNN' --in=otus97.num.fa --out1=otus97_R1.fa	--out2=otus97_R2.fa
 or
 	perl uncat_reads --length=220 --in=otus97.num.fa --out1=otus97_R1.fa --out2=otus97_R2.fa
+
 
 
 **STEP 12: Classifying OTU**
