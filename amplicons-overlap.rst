@@ -147,21 +147,23 @@ Example:
 
 	With online SINA you can choose different databases to use (EMBL, Greengenes, LTP, RDP and Silva, in this order). This script will only consider the last classification for each line, so consider that when choosing which databases to use.
 
+	In all cases, you must choose which classifier was used: RDP (rdp), online SINA (sina-ol) or standalone sina (sina-cl)
+	
 	Every classification file that you want included in your OTU table should be in the same folder, and no other files should be in it.
 
 The command:
 
-	perl otu_tables --threshold=INTEGER --samples=<FOLDER> --classification=<RDP_FILE> --sequences=<FASTA>
+	perl otu_tables --threshold=INTEGER --samples=<FOLDER> --classification=<RDP_FILE> --sequences=<FASTA> --classifier=rdp
 
 or
 
-	perl otu_tables --depth=INTEGER --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA>
+	perl otu_tables --depth=INTEGER --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=<sina-cl/sina-ol>
 
 
 Example:
 
-	perl otu_tables --threshold=50 –samples=all_reads --classification=otus97.num.fa_classified.txt --sequences=otus97.num.fa
+	perl otu_tables --threshold=50 –samples=all_reads --classification=otus97.num.fa_classified.txt --sequences=otus97.num.fa --classifier=rdp
 
 or
 
-	perl otu_tables --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa
+	perl otu_tables --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=sina-ol
