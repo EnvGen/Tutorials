@@ -6,14 +6,17 @@ otu_tables
 
 =head1 SYNOPSIS
 
-	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] --classifier=<sina/rdp/parsed> --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
+	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] --classifier=<sina/rdp> --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
 
 
 		--samples: folder containing the -usearch_global output for each sample to be analysed,
 				and nothing else (important!)
-		--classification: allrank result from RDP classifier or SINA or output from sina2out script
-		--classifier: sina or rdp, whichever was used to generate the classification; 
-				or parsed if you have run sina2otu script before; default sina
+		--classification: allrank result from RDP classifier or SINA
+		--classifier: which ever was used to generate the classification; default sina-cl
+			sina-cl: command line sina
+			sina-ol: online sina
+			rdp: online RDP
+			tsv: tsv file with OTU ID on column 1 and classification on the last column
 		--threshold: minimum precentage confidence level to retain an RDP classification; default 70
 		--depth: maximum taxonomic depth to retain a SINA classification; default 5
 		--sequences: fasta file with representatives from each OTU
@@ -38,7 +41,7 @@ my $verbose = 0;
 my $samples_folder;
 my $class_file;
 my $sequences;
-my $classifier="sina";
+my $classifier="sina-cl";
 my $threshold=70;
 my $depth=5;
 GetOptions(
@@ -60,7 +63,7 @@ opendir(DIR, $samples_folder) or die "Cannot open $samples_folder";
 pod2usage(-msg => "Need a classification file", -exitval => 1) unless $class_file;
 open CLASS, $class_file;
 
-pod2usage(-msg => "Classifier must be rdp, sina or parsed", -exitval => 1) unless (($classifier eq "sina") or ($classifier eq "rdp") or ($classifier eq "parsed"));
+pod2usage(-msg => "Classifier must be one of the four allowed ones", -exitval => 1) unless (($classifier eq "sina-cl") or ($classifier eq "rdp") or ($classifier eq "tsv") or ($classifier eq "sina-ol"));
 
 pod2usage(-msg => "Need a fasta file", -exitval => 1) unless $sequences;
 my $seqfile = Bio::SeqIO->new(-file=>"$sequences", -format => "fasta") or die "Can't open $sequences";
@@ -101,7 +104,7 @@ sub rdp_parse{
 	print "$print\t".${$seq_ref}{$otu}."\n";
 }
 
-sub silva_parse{
+sub sina_cl_parse{
 	my $line = $_[0];
 	my @samples = @{$_[1]};
 	my $samples_ref = $_[2];
@@ -132,7 +135,39 @@ sub silva_parse{
 	print "$print\t".${$seq_ref}{$otu}."\n";
 }
 
-sub parsed_parse{
+sub sina_ol_parse{
+	my $line = $_[0];
+	my @samples = @{$_[1]};
+	my $samples_ref = $_[2];
+	my $seq_ref = $_[3];
+	my $depth = $_[4];
+	chomp $line;
+	my @fields = split('";"',$line);
+	my $otu = $fields[3];
+	my $print = "$otu\t";
+	foreach my $sample (@samples){
+		if (exists ${$samples_ref}{$otu}{$sample}){
+			$print = $print.${$samples_ref}{$otu}{$sample}."\t";
+		}
+		 else{
+			$print = $print."0\t";
+		 }
+	}
+	my $taxonomy=$fields[-1];
+	chop $taxonomy;
+	my @taxonomy=split(';',$taxonomy);
+	my $count = 1;
+	foreach my $taxon (@taxonomy){
+		if ($count <= $depth and $taxon!~/^"/){
+			$taxon=~s/ /_/g;
+			$print = $print.$taxon.";";
+			$count++;
+		}
+	}
+	print "$print\t".${$seq_ref}{$otu}."\n";
+}
+
+sub tsv_parse{
 	my $line = $_[0];
 	my @samples = @{$_[1]};
 	my $samples_ref = $_[2];
@@ -151,6 +186,7 @@ sub parsed_parse{
 		 }
 	}
 	my $taxonomy=$fields[-1];
+	chop $taxonomy;
 	my @taxonomy=split(';',$taxonomy);
 	my $count = 1;
 	foreach my $taxon (@taxonomy){
@@ -191,14 +227,18 @@ print "OTU\t@samples\tTaxonomy\tCentroid\n";
 
 while (my $line = <CLASS>){
 	chomp $line;
-	if (($classifier eq "rdp" and ($line!~/(#|Classifier|Taxonomical|Query File|Submit|Confidence|Symbol)/)){
+	$"="\t"; ## Sets the separator for arrays as tab
+	if ($classifier eq "rdp"){
 		rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
 	}
-	 elsif(($classifier eq "sina") and ($line!~/(#|name|job_id)/)){
-		silva_parse($line, \@samples, \%samples, \%sequences, $depth);
+	 elsif(($classifier eq "sina-cl") and ($line!~/name/)){
+		sina_cl_parse($line, \@samples, \%samples, \%sequences, $depth);
 	 }
-	 elsif(($classifier eq "parsed") and ($line!~/(#|name|job_id)/)){
-		parsed_parse($line, \@samples, \%samples, \%sequences, $depth);
+	 elsif(($classifier eq "sina-ol") and ($line!~/job_id/)){
+		sina_ol_parse($line, \@samples, \%samples, \%sequences, $depth);
+	 }
+	 elsif($classifier eq "tsv"){
+		tsv_parse($line, \@samples, \%samples, \%sequences, $depth);		
 	 }
 }
 close CLASS;
