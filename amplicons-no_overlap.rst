@@ -158,17 +158,17 @@ The command:
 	sina2otu --pair --sina=<sina_csv_table> --sina2=<sina_csv_table> > <outfile>
 
 Example:
-	sina2otu --pair --sina=all_R1.97.csv –sina2=all_R2.97.csv > all.97.csv
+	sina2otu --pair --sina=all_R1.97.csv –sina2=all_R2.97.csv > all.97.tsv
 
 
 **STEP 14: Creating an OTU table**
 	Here we produce a table with OTUS on the lines, samples on the columns and the classification for each read and the sequence of the representative at the end of each line. You can choose to stop the taxonomy at a certain level – default is 5, or approximately class. If you want the full taxonomy, set the –depth parameter to a very large number.
-	With online SINA you can choose different databases to use (EMBL, Greengenes, LTP, RDP and Silva, in this order). This script will only consider the last classification for each line, so consider that when choosing which databases to use.
+	Since we have already created an artificial consensus from both our classifications, we need to inform the parser of this by choosing "tsv" as format.
 	Every classification file that you want included in your OTU table should be in the same folder, and no other files should be in it.
 
 
 The command:
-	perl otu_tables --parsed --depth=<INTEGER> --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA>
+	perl otu_tables --parsed --depth=<INTEGER> --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=tsv
 
 Example:
-	perl otu_tables --parsed --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa
+	perl otu_tables --parsed --depth=10 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=tsv
