@@ -229,7 +229,9 @@ while (my $line = <CLASS>){
 	chomp $line;
 	$"="\t"; ## Sets the separator for arrays as tab
 	if ($classifier eq "rdp"){
-		rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
+		if ($line!~/^(Classifier\:|Taxonomical |Query File|Submit Date|Confidence |Symbol |\n)/){
+			rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
+		}
 	}
 	 elsif(($classifier eq "sina-cl") and ($line!~/name/)){
 		sina_cl_parse($line, \@samples, \%samples, \%sequences, $depth);
