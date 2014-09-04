@@ -2,7 +2,7 @@ Processing amplicons with overlapping reads
 ===========================================
 
 
-This is a quick guide on how to use Usearch7 to go from fastq files all the way to a table of OTUs. More information can be found on the Usearch project page, http://www.drive5.com/usearch/manual/. Also refer to this page for download and installation instructions. I'm going to assume in this manual that you can call Usearch simply by typing ./usearch7, but this depends on the folder where you have installed it, how you have named it and the folder you're in.
+This is a quick guide on how to use Usearch7 to go from fastq files all the way to a table of OTUs. More information can be found on the Usearch project `page <http://www.drive5.com/usearch/manual/>`_. Also refer to this page for download and installation instructions. I'm going to assume in this manual that you can call Usearch simply by typing ./usearch7, but this depends on the folder where you have installed it, how you have named it and the folder you're in.
 
 This guide is based on Illumina MiSeq reads and Usearch 7.0.959. It will NOT work with older versions of Usearch. It hopefully works with later versions. Please let me know if it doesn't.
 
@@ -25,7 +25,7 @@ Example:
 	./usearch -fastq_filter reads_R2.fq -fastq_truncqual 20 -fastqout reads_R2.trim.fq
 
 **STEP 2: Synchronizing**
-	Despite the fact that MiSeq reads usually have good quality, it can happen that in your files you had some bad reads, which were discarded on the previous step. If Usearch finds reads that are present in one file and not the other, it doesn't know how to proceed. Therefore, I've written a script that will throw away every read that isn't present in both the forward (R1) and the reverse (R2) files. You can download this script from www.biologic.se. This script will automatically choose the name for the output files by adding '.sync.fq' to the end.
+	Despite the fact that MiSeq reads usually have good quality, it can happen that in your files you had some bad reads, which were discarded on the previous step. If Usearch finds reads that are present in one file and not the other, it doesn't know how to proceed. Therefore, I've written a script that will throw away every read that isn't present in both the forward (R1) and the reverse (R2) files. You can download this script `here <https://github.com/EnvGen/Tutorials/blob/master/resync>`_. This script will automatically choose the name for the output files by adding '.sync.fq' to the end.
 
 The command:
 
@@ -111,7 +111,7 @@ Example:
 
 
 **STEP 9: Renaming OTU**
-	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded from http://drive5.com/python/. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial.
+	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded `here <http://drive5.com/python/>`_. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial.
 
 The command:
 
@@ -137,7 +137,7 @@ Example:
 
 
 **STEP 11: Classifying OTU**
-	If you're working with 16S, I recommend using the online RDP classifier: http://rdp.cme.msu.edu/classifier/classifier.jsp. Download the fullrank result when you're done. You can also install RDP and run it locally. If you're working with 18S, 23S or 28S, I recommend the SINA classifier. Its online version (http://www.arb-silva.de/aligner/) only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally: http://www.arb-silva.de/no_cache/download/archive/SINA/builds/2013/build-103/
+	If you're working with 16S, I recommend using the online `RDP classifier <http://rdp.cme.msu.edu/classifier/classifier.jsp>`_. Download the fullrank result when you're done. You can also install RDP and run it locally. If you're working with 18S, 23S or 28S, I recommend the SINA classifier. Its `online version <http://www.arb-silva.de/aligner/>`_ only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the `SINA classifier locally <http://www.arb-silva.de/no_cache/download/archive/SINA/builds/2013/build-103/>`_.
 
 
 **STEP 12: Creating an OTU table**
