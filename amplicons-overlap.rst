@@ -20,9 +20,9 @@ The command:
 
 Example:
 
-	./usearch -fastq_filter reads_R1.fq -fastq_truncqual 20 -fastqout reads_R1.trim.fq
+	./usearch7 -fastq_filter reads_R1.fq -fastq_truncqual 25 -fastqout reads_R1.trim.fq
 
-	./usearch -fastq_filter reads_R2.fq -fastq_truncqual 20 -fastqout reads_R2.trim.fq
+	./usearch7 -fastq_filter reads_R2.fq -fastq_truncqual 25 -fastqout reads_R2.trim.fq
 
 **STEP 2: Synchronizing**
 	Despite the fact that MiSeq reads usually have good quality, it can happen that in your files you had some bad reads, which were discarded on the previous step. If Usearch finds reads that are present in one file and not the other, it doesn't know how to proceed. Therefore, I've written a script that will throw away every read that isn't present in both the forward (R1) and the reverse (R2) files. You can download this script `here <https://github.com/EnvGen/Tutorials/blob/master/resync>`_. This script will automatically choose the name for the output files by adding '.sync.fq' to the end.
