@@ -229,7 +229,7 @@ while (my $line = <CLASS>){
 	chomp $line;
 	$"="\t"; ## Sets the separator for arrays as tab
 	if ($classifier eq "rdp"){
-		if ($line!~/^(Classifier\:|Taxonomical |Query File|Submit Date|Confidence |Symbol |) and ($line ne "")){
+		if ($line!~/^(Classifier\:|Taxonomical |Query File|Submit Date|Confidence |Symbol |)/ and ($line ne "")){
 			rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
 		}
 	}
