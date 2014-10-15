@@ -143,7 +143,7 @@ sub sina_ol_parse{
 	my $depth = $_[4];
 	chomp $line;
 	my @fields = split('";"',$line);
-	my $otu = $fields[3];
+	my $otu = $fields[2];
 	my $print = "$otu\t";
 	foreach my $sample (@samples){
 		if (exists ${$samples_ref}{$otu}{$sample}){
