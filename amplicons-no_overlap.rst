@@ -29,21 +29,21 @@ The command:
 	./usearch7 -fastq_filter <infile> -fastq_trunclen <cutoff> -fastq_maxee <max error number> -fastqout <outfile>
 
 Example:
-	./usearch -fasq_filter reads_R1.fq -fastq_trunclen 200 -fastq_maxee 3 -fastqout reads_R1.trim.fq
+	./usearch -fasq_filter reads_R1.fq -fastq_trunclen 280 -fastq_maxee 4 -fastqout reads_R1.trim.fq
 
-	./usearch -fasq_filter reads_R2.fq -fastq_truncqual 180 -fastq_maxee 3 -fastqout reads_R2.trim.fq
+	./usearch -fasq_filter reads_R2.fq -fastq_truncqual 250 -fastq_maxee 4 -fastqout reads_R2.trim.fq
 
 
 **STEP 3: Converting to fasta**
 	After the trimming is done, we no longer need the quality information.
 
 The comand:
-	grep '^@HWI' <infile> -A1 –no-group-separator | sed 's/@/>/' > <outfile>
+	grep '^@HWI' <infile> -A1 --no-group-separator | sed 's/@/>/' > <outfile>
 
 Example:
-	grep '^@HWI' reads_R1.fq -A1 –no-group-separator | sed 's/@/>/' > reads_R1.fa
+	grep '^@HWI' reads_R1.fq -A1 --no-group-separator | sed 's/@/>/' > reads_R1.fa
 
-If this doesn't work (are working on a Mac?) try:
+If this doesn't work (are you working on a Mac?) try:
 	grep '^@HWI' reads_R1.fq -A1 | grep -v '^--$' | sed 's/@/>/' > reads_R1.fa
 
 **STEP 4: Concatenating reads**
@@ -98,14 +98,14 @@ Example:
 	If you're having memory problems, you can use -cluster_smallmem instead of cluster_fast. This is slightly less accurate. 
 
 The command:
-	./usearch6 -cluster_fast <infile> -id <identity> -uc <uc_file> -idprefix <integer> --centroids <fasta output>
+	./usearch6 -cluster_smallmem <infile> -id <identity> -uc <uc_file> -idprefix <integer> --centroids <fasta output>
 
 Example:
-	./usearch6 -cluster_fast all.sort.fa -id 0.99 -uc all.99.uc -idprefix 5 –centroids all.99.fa -sizein
+	./usearch6 -cluster_smallmem all.sort.fa -id 0.99 -uc all.99.uc -idprefix 5 –centroids all.99.fa -sizein -sizeout
 
-	./usearch6 -cluster_fast all.99.fa -id 0.98 -uc all.98.uc -idprefix 5 –centroids all.98.fa -sizein -sizeout
+	./usearch6 -cluster_smallmem all.99.fa -id 0.98 -uc all.98.uc -idprefix 5 –centroids all.98.fa -sizein -sizeout
 
-	./usearch6 -cluster_fast all.98.fa -id 0.97 -uc all.97.uc -idprefix 5 –centroids all.97.fa -sizein -sizeout
+	./usearch6 -cluster_smallmem all.98.fa -id 0.97 -uc all.97.uc -idprefix 5 –centroids all.97.fa -sizein -sizeout
 
 
 
@@ -125,7 +125,7 @@ Example:
 
 The command:
 
-	./usearch7 -usearch_global <sample file> -db <numbered out file> -strand 	<plus/minus/both> -id <similarity to the centroid> -uc <outfile>
+	./usearch7 -usearch_global <sample file> -db <numbered out file> -strand <plus/minus/both> -id <similarity to the centroid> -uc <outfile>
 
 Example:
 
@@ -141,7 +141,7 @@ or
 	perl uncat_reads --length=<length> --in=<infile> --out1=<fwd_file> --out2=<rev_file>
 
 Example:
-	perl uncat_reads --spacer='NNNNNNN' --in=otus97.num.fa --out1=otus97_R1.fa	--out2=otus97_R2.fa
+	perl uncat_reads --spacer='NNNNNNN' --in=otus97.num.fa --out1=otus97_R1.fa --out2=otus97_R2.fa
 or
 	perl uncat_reads --length=220 --in=otus97.num.fa --out1=otus97_R1.fa --out2=otus97_R2.fa
 
