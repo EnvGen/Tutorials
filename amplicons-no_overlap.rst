@@ -1,7 +1,7 @@
 Processing amplicons with non-overlapping reads
 ===============================================
 
-This is a quick guide on how to use Usearch6 to go from fastq files all the way to a table of OTUs. More information can be found on the Usearch project page, http://www.drive5.com/usearch/manual/. Also refer to this page for download and installation instructions. I'm going to assume in this manual that you can call Usearch simply by typing ./usearch6, but this depends on the folder where you have installed it, how you have called it and the folder you're in.
+This is a quick guide on how to use Usearch6 to go from fastq files all the way to a table of OTUs. More information can be found on the `Usearch project page, <http://www.drive5.com/usearch/manual/>`_. Also refer to this page for download and installation instructions. I'm going to assume in this manual that you can call Usearch simply by typing ./usearch6, but this depends on the folder where you have installed it, how you have called it and the folder you're in.
 
 This guide is based on Illumina MiSeq reads and Usearch 6.0.x and Usearch7. Please pay attention to use the right version at each step. It might be possible to replace Usearch6.0.x with Usearch 6.1.x and it might work with 5.x.x or older. All of the steps done in Usearch7 in this manual can be done with either Fastx or Usearch6. Don't try Fastx unless you already have it in your server.
 
@@ -13,7 +13,7 @@ This guide is to be used if your forward and reverse reads do not overlap or if 
 -------------------------------
 
 **STEP 1: Quality statistics**
-	In the next step, you will have to decide how many bases you want to cut off from the end of your reads, to simultaneously preserve as many bases as possible and guarantee the quality of your reads. Therefore, in this step, you simply get some statistics on quality. For this, you can use Usearch7 or Fastx. If using Usearch7, the statistcs are explained at length in http://www.drive5.com/usearch/manual/fastq_stats.html
+	In the next step, you will have to decide how many bases you want to cut off from the end of your reads, to simultaneously preserve as many bases as possible and guarantee the quality of your reads. Therefore, in this step, you simply get some statistics on quality. For this, you can use Usearch7, Fastx, FastQC and others. If using Usearch7, the statistics are explained at length `here <http://www.drive5.com/usearch/manual/fastq_stats.html>`_. For FastQC, `check here <http://www.bioinformatics.babraham.ac.uk/projects/fastqc/>`_.
 
 The command: 
 	./usearch7 -fastq_stats <infile> -log <outfile>
@@ -56,9 +56,9 @@ or
 
 
 Example
-	perl cat_reads --revcom --file1=reads_R1.fa --file2=reads_R2.fa > reads_cat.fa
+	perl cat_reads --spacer=NNNNNNNN --revcom --file1=reads_R1.fa --file2=reads_R2.fa > reads_cat.fa
 or
-	perl cat_reads --revcom --file1=reads_R1.fa --file2=reads_R2.fa
+	perl cat_reads --revcom --file1=reads_R1.fa --file2=reads_R2.fa > reads_cat.fa
 
 *PART II: CLUSTERING*
 ---------------------
@@ -94,18 +94,18 @@ Example:
 
 **STEP 9: Clustering**
 	Here we cluster our reads by similarity. Usearch uses average-linkage clustering, which means that it is possible that two sequences that are closer to each other than the similarity threshold can still end up in different OTU. One way to minimize this risk is to cluster at a higher similarity first, and then gradually expand these clusters.
-	You can speed up your process by informing Usearch how many bases it can ignore in the beginning of the read; you can do that for the portion of your forward primer that has no degeneracies.
+	Since we have not removed the primer sequences, we will tell Usearch to not consider them in the clustering.
 	If you're having memory problems, you can use -cluster_smallmem instead of cluster_fast. This is slightly less accurate. 
 
 The command:
-	./usearch6 -cluster_smallmem <infile> -id <identity> -uc <uc_file> -idprefix <integer> --centroids <fasta output>
+	./usearch6 -cluster_smallmem <infile> -id <identity> -uc <uc_file> -idprefix <integer> -idsuffix <integer> --centroids <fasta output>
 
 Example:
-	./usearch6 -cluster_smallmem all.sort.fa -id 0.99 -uc all.99.uc -idprefix 5 –centroids all.99.fa -sizein -sizeout
+	./usearch6 -cluster_smallmem all.sort.fa -id 0.99 -uc all.99.uc -idprefix 18 -idsuffix 18 –centroids all.99.fa -sizein -sizeout
 
-	./usearch6 -cluster_smallmem all.99.fa -id 0.98 -uc all.98.uc -idprefix 5 –centroids all.98.fa -sizein -sizeout
+	./usearch6 -cluster_smallmem all.99.fa -id 0.98 -uc all.98.uc -idprefix 18 -idsuffix 18 –centroids all.98.fa -sizein -sizeout
 
-	./usearch6 -cluster_smallmem all.98.fa -id 0.97 -uc all.97.uc -idprefix 5 –centroids all.97.fa -sizein -sizeout
+	./usearch6 -cluster_smallmem all.98.fa -id 0.97 -uc all.97.uc -idprefix 18 -idsuffix 18 –centroids all.97.fa -sizein -sizeout
 
 
 
@@ -148,7 +148,7 @@ or
 
 
 **STEP 12: Classifying OTU**
-	There are many tools for assigning taxonomy to a read. Here we use the SINA classifier. Its online version only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally: http://www.arb-silva.de/aligner/
+	There are many tools for assigning taxonomy to a read. Here we use the `SINA classifier < http://www.arb-silva.de/aligner/>`_. Its online version only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally.
 
 
 **STEP 13: Parsing taxonomy**
