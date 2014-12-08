@@ -98,16 +98,20 @@ Example:
 	./usearch7 -sortbysize uniques.fa -output uniques.sort.fa -minsize 2
 
 
-**STEP 8: Clustering**
-	Usearch uses single-linkage clustering, that is, it checks whether each sequence is at no more than a certain distance from the centroid of its cluster. If you prefer to use complete-linkage, this can be approximated by specifying half the radius you want to have. For example, if you want 97% OTU with single-linkage, your radius is 3%; with complete-linkage, your radius is 1.5%.
+**STEP 9: Clustering**
+	Here we cluster our reads by similarity. Usearch uses average-linkage clustering, which means that it is possible that two sequences that are closer to each other than the similarity threshold can still end up in different OTU. One way to minimize this risk is to cluster at a higher similarity first, and then gradually expand these clusters.
+	Since we have not removed the primer sequences, we will tell Usearch to not consider them in the clustering.
+	If you're having memory problems, you can use -cluster_smallmem instead of cluster_fast. This is slightly less accurate. 
 
 The command:
-
-	./usearch7 -cluster_otus <infile> -otus <outfile> -otu_radius_pct <radius>
+	./usearch7 -cluster_smallmem <infile> -id <identity> -uc <uc_file> -idprefix <integer> -idsuffix <integer> --centroids <fasta output>
 
 Example:
+	./usearch7 -cluster_smallmem all.sort.fa -id 0.99 -uc all.99.uc -idprefix 18 -idsuffix 18 –centroids all.99.fa -sizein -sizeout
 
-	./usearch7 -cluster_otus uniques.sort.fa -otus otus97.fa -otu_radius_pct 3.0
+	./usearch7 -cluster_smallmem all.99.fa -id 0.98 -uc all.98.uc -idprefix 18 -idsuffix 18 –centroids all.98.fa -sizein -sizeout
+
+	./usearch7 -cluster_smallmem all.98.fa -id 0.97 -uc all.97.uc -idprefix 18 -idsuffix 18 –centroids all.97.fa -sizein -sizeout
 
 
 **STEP 9: Renaming OTU**
@@ -121,7 +125,6 @@ Example:
 
 	python fasta_number.py otus97.fa OTU_ > otus97num.fa
 
-
 **STEP 10: Assigning reads to OTU**
 	We will now look at each of our original fasta files and assign them to OTU. At this point, take the opportunity to make a directory just for your new cluster files. This is important downstream. You're also requested to say how similar your sample must be to the centroid. This must be compatible with the radius you used for clustering. For example, if you used a radius of 3%, use now a similarity of 0.97.
 
@@ -129,7 +132,7 @@ Example:
 
 The command:
 
-	./usearch7 -usearch_global <sample file> -db <numbered out file> -strand 	<plus/minus/both> -id <similarity to the centroid> -uc <outfile>
+	./usearch7 -usearch_global <sample file> -db <numbered out file> -strand <plus/minus/both> -id <similarity to the centroid> -uc <outfile>
 
 Example:
 
