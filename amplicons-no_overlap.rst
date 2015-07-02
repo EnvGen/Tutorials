@@ -145,7 +145,8 @@ Example:
 or
 	perl uncat_reads --length=220 --in=otus97.num.fa --out1=otus97_R1.fa --out2=otus97_R2.fa
 
-
+*PART III: CLASSIFYING*
+-----------------------
 
 **STEP 12: Classifying OTU**
 	There are many tools for assigning taxonomy to a read. Here we use the `SINA classifier <http://www.arb-silva.de/aligner/>`_. Its online version only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally.
@@ -160,9 +161,10 @@ The command:
 Example:
 	sina2otu --pair --sina=all_R1.97.csv –sina2=all_R2.97.csv > all.97.tsv
 
-
+*PART IV: OTU TABLES*
+-----------------------
 **STEP 14: Creating an OTU table**
-	Here we produce a table with OTUS on the lines, samples on the columns and the classification for each read and the sequence of the representative at the end of each line. You can choose to stop the taxonomy at a certain level – default is 5, or approximately class. If you want the full taxonomy, set the –depth parameter to a very large number.
+	Independently of the classification method chosen above, this step will produce a table with OTUS on the lines, samples on the columns and the classification for each read and the sequence of the representative at the end of each line. You can choose to stop the taxonomy at a certain level – default is 5, or approximately class. If you want the full taxonomy, set the –depth parameter to a very large number.
 	Since we have already created an artificial consensus from both our classifications, we need to inform the parser of this by choosing "tsv" as format.
 	Every classification file that you want included in your OTU table should be in the same folder, and no other files should be in it.
 
@@ -172,3 +174,13 @@ The command:
 
 Example:
 	perl otu_tables --parsed --depth=10 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=tsv
+
+*STEP V: BIOLOGY*
+-----------------
+It's beyond the scope of this tutorial to teach you how to draw biological conclusions from your OTU table. However, here are some useful links:
+
+For visualizing your data in interactive hierarchical pie charts, use `Krona <http://sourceforge.net/p/krona/home/krona/>`_.
+
+For information and tutorials on statistical methods for analysis of microbial ecology, take a look at `Gustame <https://sites.google.com/site/mb3gustame/home>`_.
+
+If you believe that there are interesting OTU that are worth looking deeper into for their specific ecology, consider `oligotyping <http://merenlab.org/projects/oligotyping/>`_.
