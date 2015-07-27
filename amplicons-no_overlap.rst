@@ -92,7 +92,7 @@ Example:
 	./usearch7 -sortbysize all.derep.fa -output all.sort.fa -minsize 2
 
 
-**STEP 9: Clustering**
+**STEP 8: Clustering**
 	Here we cluster our reads by similarity. Usearch uses average-linkage clustering, which means that it is possible that two sequences that are closer to each other than the similarity threshold can still end up in different OTU. One way to minimize this risk is to cluster at a higher similarity first, and then gradually expand these clusters.
 	Since we have not removed the primer sequences, we will tell Usearch to not consider them in the clustering.
 	If you're having memory problems, you can use -cluster_smallmem instead of cluster_fast. This is slightly less accurate. 
@@ -109,7 +109,7 @@ Example:
 
 
 
-**STEP 10: Renaming OTU**
+**STEP 9: Renaming OTU**
 	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded `here <http://drive5.com/python/>`_. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial.
 
 The command:
@@ -166,16 +166,16 @@ Example:
 **STEP 14: Creating an OTU table**
 	Independently of the classification method chosen above, this step will produce a table with OTUS on the lines, samples on the columns and the classification for each read and the sequence of the representative at the end of each line. You can choose to stop the taxonomy at a certain level – default is 5, or approximately class. If you want the full taxonomy, set the –depth parameter to a very large number.
 	Since we have already created an artificial consensus from both our classifications, we need to inform the parser of this by choosing "tsv" as format.
-	Every classification file that you want included in your OTU table should be in the same folder, and no other files should be in it.
+	Every classification file that you want included in your OTU table should be in the same folder, and no other files should be in it. The same applies to the read assignment files (uc files), that should be in their own folder, and with nothing else there.
 
 
 The command:
 	perl otu_tables --parsed --depth=<INTEGER> --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=tsv
 
 Example:
-	perl otu_tables --parsed --depth=10 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=tsv
+	perl otu_tables --parsed --depth=10 --samples=clusters --classification=otus97.csv --sequences=otus97.num.fa --classifier=tsv
 
-*STEP V: BIOLOGY*
+*PART V: BIOLOGY*
 -----------------
 It's beyond the scope of this tutorial to teach you how to draw biological conclusions from your OTU table. However, here are some useful links:
 
