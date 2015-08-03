@@ -129,7 +129,14 @@ The command:
 
 Example:
 
-	./usearch7 -usearch_global reads1.merge.fa -db otus97.num.fa -strand plus -id 0.97 -uc 	clusters/reads1.uc
+	./usearch7 -usearch_global reads1.merge.fa -db otus97.num.fa -strand both -id 0.97 -uc 	clusters/reads1.uc
+	
+Or, to run all samples without having to retype the command each time:
+
+	SAMPLES=reads*merge.fa
+	for sample in $SAMPLES; do
+		./usearch7 -usearch_global $sample -db otus97.num.fa -strand both -id 0.97 -uc clusters/${file%merge.fa}uc
+	done
 
 
 **STEP 11: Splitting the concatenated reads**
@@ -170,10 +177,10 @@ Example:
 
 
 The command:
-	perl otu_tables --parsed --depth=<INTEGER> --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=tsv
+	perl otu_tables --depth=<INTEGER> --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=tsv
 
 Example:
-	perl otu_tables --parsed --depth=10 --samples=clusters --classification=otus97.csv --sequences=otus97.num.fa --classifier=tsv
+	perl otu_tables --depth=10 --samples=clusters --classification=otus97.csv --sequences=otus97.num.fa --classifier=tsv
 
 *PART V: BIOLOGY*
 -----------------
