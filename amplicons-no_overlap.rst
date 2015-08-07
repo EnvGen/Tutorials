@@ -29,9 +29,9 @@ The command:
 	./usearch7 -fastq_filter <infile> -fastq_trunclen <cutoff> -fastq_maxee <max error number> -fastqout <outfile>
 
 Example:
-	./usearch -fasq_filter reads_R1.fq -fastq_trunclen 280 -fastq_maxee 4 -fastqout reads_R1.trim.fq
+	./usearch -fastq_filter reads_R1.fq -fastq_trunclen 280 -fastq_maxee 4 -fastqout reads_R1.trim.fq
 
-	./usearch -fasq_filter reads_R2.fq -fastq_truncqual 250 -fastq_maxee 4 -fastqout reads_R2.trim.fq
+	./usearch -fastq_filter reads_R2.fq -fastq_trunclen 250 -fastq_maxee 4 -fastqout reads_R2.trim.fq
 
 
 **STEP 3: Converting to fasta**
