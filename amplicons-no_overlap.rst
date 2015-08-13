@@ -155,6 +155,10 @@ or
 *PART III: CLASSIFYING*
 -----------------------
 
+**If you're working on 18S reads:**
+Please refer to the `18S taxonomy workflow <https://github.com/EnvGen/Tutorials/blob/master/18S_taxonomy.rst>`_ and then proceed to Part IV here. Otherwise, follow Steps 12 and 13 as described below.
+
+
 **STEP 12: Classifying OTU**
 	There are many tools for assigning taxonomy to a read. Here we use the `SINA classifier <http://www.arb-silva.de/aligner/>`_. Its online version only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the SINA classifier locally.
 
