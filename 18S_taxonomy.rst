@@ -9,9 +9,7 @@ developed this strategy for optimizing accuracy and efficiency of taxonomic assi
 based on the `PR2 database <http://ssu-rrna.org/>`_. A manuscript is under preparation, so please 
 check back and cite us if you use this work.
 
-----------------
-Part 1: Blasting
-----------------
+
 The first step is to blast each set of reads (forward and reverse) against a curated revision of the PR2 database. 
 While this database is very complete and thoroughly annotated, it includes in some cases ITS and 28S regions which
 can affect the accuracy of blasting. Therefore, it is best for the purposes of this workflow to use 
