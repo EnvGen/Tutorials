@@ -88,11 +88,11 @@ def lca(scores1, scores2, percent, tax):
 		topcommon = toppercent(commonscores, percent)
 		#get the LCA for these
 		classify = ''
-		for query, score in topcommon.iteritems():
+		for hit, score in topcommon.iteritems():
 			if classify == '':
-				classify = tax[query]
+				classify = tax[hit]
 			else:
-				classify = commonprefix([classify, tax[query]])
+				classify = commonprefix([classify, tax[hit]])
 		if classify == '':
 			classify = 'Unclassified;'
 		#print classify
