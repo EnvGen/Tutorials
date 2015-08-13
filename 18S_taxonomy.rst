@@ -33,9 +33,11 @@ for the reference database. Example:
 
   python taxonomy_blast_parser.py -1 fwd.blast.out -2 rev.blast.out -id 99 -tax PR2_derep_3000bp.tax.txt > parse.99.out
   
+What this step does is to consider the top 5% highest scoring hits from each read that meet the criteria for coverage and similarity, then output the last common ancestor for those which are present both in the forward and the reverse reads.
+  
 STEP 3
 ------
-Combine these 3 parsed outputs into a single table that will give the most detailed information available. 
+Combine these 3 parsed outputs into a single table that will give the most detailed information available, but fill in with lower resolution information when needed. 
 The order of the input is relevant, as priority will be given to the first file named. E.g:
 
   python combine_taxonomy.py -i parse.99.out,parse.97.out,parse.90.out -n species,genus,phylum > taxonomy.tsv
