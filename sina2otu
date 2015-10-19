@@ -140,4 +140,3 @@ if ($by_taxon){
 		print "$taxon\t$count\n";
 	}
 }
-
