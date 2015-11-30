@@ -85,10 +85,11 @@ def lca(scores1, scores2, percent, tax):
 			score = hit[goodhit] + scores2[query][goodhit]
 			commonscores[goodhit] = score
 		#get the top percent scores of this intersection
-		topcommon = toppercent(commonscores, percent)
+		topcommon = toppercent(commonscores, percent)	#### This 5% is non-sensical, remove
 		#get the LCA for these
 		classify = ''
 		for hit, score in topcommon.iteritems():
+		#for hit, score in commonscores.iteritems():
 			if classify == '':
 				classify = tax[hit]
 			else:
@@ -113,7 +114,7 @@ def main(blast1, blast2, evalue, coverage, identity, keep, taxonomy):
 #1 filter the blast result with cutoffs 90, 97 or 99 and aligned length 250bp
 #2 find the blast matches in both FWD and REV qualified items
 #3 sum the score of those matches and rank them
-#4 use top 5% blast annotations' Last Common Ancestor for the classification
+#4 use top blast annotations' Last Common Ancestor for the classification
 	#parse taxonomy
 	tax = parse_taxonomy(taxonomy)
 	#parse blast result for each file at user cutoff
@@ -132,7 +133,7 @@ if __name__ == '__main__':
 	parser.add_argument('-e', '--evalue', nargs='?', default=1E-5, type=float, help='Maximal evalue to consider blast match. Default: %(default)f')
 	parser.add_argument('-c', '--coverage', nargs='?', default=85.0, type=float, help='Minimal coverage of blast hit to consider match. Default: %(default)d per cent')
 	parser.add_argument('-id', '--identity', nargs='?', default=99.0, type=float, help='Maximal residue identity of interest to consider a match. Default: %(default)d per cent')
-	parser.add_argument('--keep', nargs='?', default=5.0, type=float, help='Percentage of top blast hits from each output file to check if they are paired. Default: %(default)d per cent')
+	parser.add_argument('--keep', nargs='?', default=100.0, type=float, help='Percentage of common top blast hits from each output file to consider for LCA. Default: %(default)d per cent')
 	parser.add_argument('-tax', '--taxonomy', help='Annotated taxonomy for last common ancestor inference')
 	args = parser.parse_args()
 
