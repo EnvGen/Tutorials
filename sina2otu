@@ -6,7 +6,7 @@ sina2otu
 
 =head1 SYNOPSIS
 
-	sina2otu [--help] [--verbose] [--pair] [--number] --sina=<sina_csv_table> [--sina2=<sina_csv_table>] [--by-taxon]
+	sina2otu [--help] [--verbose] [--pair] [--number] [--ol|--cl] --sina=<sina_csv_table> [--sina2=<sina_csv_table>] [--by-taxon]
 
 		Takes 2 tables: one associationg read ID and cluster size, one SINA classification table.
 		Outputs a table with phylogeny and read counts.	
@@ -17,6 +17,8 @@ sina2otu
 			--number: replace the headers in sina files for OTU_1, OTU_2....
 			--sina, sina2: standard sina classification output
 			--by-taxon: output counts for each taxon.
+			--cl: command-line sina with standard output was used [default]
+			--ol: online sina was used and the result downloaded
 
 		
 =head1 AUTHOR
@@ -38,6 +40,8 @@ my $othersina;
 my $number;
 my $pair = 0;
 my $by_taxon = 0;
+my $online = 0;
+my $command;
 GetOptions(
   "help!" => \$help,
   "verbose!" => \$verbose,
@@ -45,13 +49,16 @@ GetOptions(
   "sina2=s" => \$othersina,
   "pair!" => \$pair,
   "number!" => \$number,
-  "by-taxon!" => \$by_taxon
+  "by-taxon!" => \$by_taxon,
+  "ol!" => \$online,
+  "cl!" => \$command
 );
 
 pod2usage(0) if $help;
 
 pod2usage(-msg => "Please provide at least one sina file", -exitval => 1) unless $sinafile;
 pod2usage(-msg => "Pair usage requires 2 sina files", -exitval => 1) if ($pair and not $othersina);
+$command = 0 if ($online);
 open SINA, $sinafile or die "Can't open $sinafile: $!";
 (open SINA2, $othersina or die "Can't open $othersina: $!") if $pair;
 
@@ -61,9 +68,18 @@ my $counter=1;
 while (my $line = <SINA>){
 	unless ($line=~/^"job_id"/ or $line=~/^name/){
 		chomp $line;
-		my @fields = split(',', $line);
-		my $id =  $fields[0];
-		my $tax = $fields[-5];
+		my ($tax, $id);
+		my @fields;
+		if ($command){
+			@fields = split(',', $line);
+			$id =  $fields[0];
+			$tax = $fields[-5];
+		}
+		 elsif ($online){
+			@fields = split(',', $line);
+			$id =  $fields[2];
+			$tax = $fields[-1];
+		 }
 		$tax =~ s/\r//g;
 		$tax =~ s/ /_/g;
 		$tax = substr ($tax, 1, length($tax)) if ($tax=~/^;/);
@@ -87,9 +103,18 @@ if ($pair){
 	while (my $line = <SINA2>){
 		unless ($line=~/^"job_id"/ or $line=~/^name/){
 			chomp $line;
-			my @fields = split(',', $line);
-			my $id =  $fields[0];
-			my $tax2 = $fields[-5];
+			my ($tax2, $id);
+			my @fields;
+			if ($command){
+				@fields = split(',', $line);
+				$id =  $fields[0];
+				$tax2 = $fields[-5];
+			}
+			 elsif ($online){
+				@fields = split(',', $line);
+				$id =  $fields[2];
+				$tax2 = $fields[-1];
+			 }
 			$tax2 =~ s/\r//g;
 			$tax2 =~ s/ /_/g;
 			$tax2 = substr ($tax2, 1, length($tax2)) if ($tax2=~/^;/);
@@ -120,8 +145,15 @@ if ($pair){
 				@consensus=@taxa2;
 			 }
 			$tax = join (';',@consensus);
-                        $tax = $tax.";";
-                        $short_tax = $consensus[-1];
+			if ($tax !~ ";"){
+				$short_tax = $tax;
+			}
+			 elsif ($command){
+	            $short_tax = $consensus[-1];
+			 }
+			 elsif ($online){
+				$short_tax = $consensus[-2];
+			 }
 			unless ($by_taxon){
 				$id = "OTU_$counter" if $number;
 				print "$id\t$short_tax\t$tax\n";
