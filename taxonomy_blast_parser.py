@@ -30,37 +30,13 @@ def blast_parser(blastfile, maxeval, mincov, minID):
 			hit = row[1]
 			percid = float(row[2])
 			length = int(row[3])
-			hlen = float(row[9]) - float(row[8])
+			hlen = abs(float(row[9]) - float(row[8]))
 			evalue = float(row[10])
 			cov = 100*length/hlen
 			score = float(row[11])
 			if (evalue <= maxeval and percid >= minID and cov >= mincov):
 				scores[query][hit] = score
 	return scores
-
-
-def toppercent(scores, percent):
-	# Keeps only the percent% high-scoring hits for each query-hit pair
-	returndict = defaultdict(dict)
-	#keep = scores.copy()
-	numhits = len(scores.keys())
-	minkeep = int(math.floor(0.01 * percent * numhits))
-			#I take floor, but since lists are 0-indexed, it corresponds to ceiling
-	scrs = list()
-	for query, score in scores.iteritems():
-		scrs.append(score)
-	scrs.sort()
-	if len(scrs) > minkeep:
-		minscore = scrs[minkeep]
-	elif len(scrs) > 0:
-		minscore = scrs[-1]
-	else:
-		minscore = 0
-	returndict = dict()
-	for query, score in scores.iteritems():
-		if score >= minscore:
-			returndict[query] = score
-	return returndict
 
 		
 def parse_taxonomy(taxfile):
@@ -73,7 +49,7 @@ def parse_taxonomy(taxfile):
 	return tax
 
 
-def lca(scores1, scores2, percent, tax):
+def lca(scores1, scores2, tax):
 	classdict = dict()
 	for query, hit in scores1.iteritems():
 		scr1 = set(hit.keys())
@@ -81,49 +57,57 @@ def lca(scores1, scores2, percent, tax):
 		#find the common hits of both dictionaries
 		common = scr1.intersection(scr2)
 		commonscores=dict()
+		topscore = 0
 		for goodhit in common:
 			score = hit[goodhit] + scores2[query][goodhit]
 			commonscores[goodhit] = score
-		#get the top percent scores of this intersection
-		topcommon = toppercent(commonscores, percent)	#### This 5% is non-sensical, remove
+			if score > topscore:
+				topscore = score
+		#remove from common all the scores that aren't at least 95% of topscore
+		minscore = 0.95*topscore
+		topscores = commonscores.copy()
+		for goodhit in commonscores:
+			if commonscores[goodhit] < minscore:
+				del topscores[goodhit]
 		#get the LCA for these
 		classify = ''
-		for hit, score in topcommon.iteritems():
-		#for hit, score in commonscores.iteritems():
-			if classify == '':
-				classify = tax[hit]
+		for tophit in topscores:
+			if classify == '' and tophit in tax:
+				#print str(tax[tophit])
+				classify = str(tax[tophit])
 			else:
-				classify = commonprefix([classify, tax[hit]])
+				#print str(tax[tophit])
+				#print "And the common pref is " + commonprefix([classify, str(tax[tophit])])
+				classify = commonprefix([classify, str(tax[tophit])])
 		if classify == '':
 			classify = 'Unclassified;'
-		#print classify
 		#take longest substr ending in ;
+		#print str(classify)
 		meaningful = re.match(".+;", classify)
 		classify = meaningful.group()
 		classdict[query] = classify
-		#print query + "\t" + classify
 	return classdict
 
-def print_class(classify, identity):
-	print "Query\tTaxonomy\tSimilarity_level"
-	for query, tax in classify.iteritems():
-		print query + "\t" + tax
+def print_class(classified):
+	print "Query\tTaxonomy"
+	for query, tax in classified.iteritems():
+		print query + "\t" + str(tax)
 	
-def main(blast1, blast2, evalue, coverage, identity, keep, taxonomy):
+def main(blast1, blast2, evalue, coverage, identity, taxonomy):
 ##### METHOD #######
-#1 filter the blast result with cutoffs 90, 97 or 99 and aligned length 250bp
+#1 filter the blast result with cutoffs 90, 97 or 99 and aligned length 90% 
 #2 find the blast matches in both FWD and REV qualified items
 #3 sum the score of those matches and rank them
-#4 use top blast annotations' Last Common Ancestor for the classification
+#4 take blast annotations that have >=95% of the best bitscore; Last Common Ancestor for the classification
 	#parse taxonomy
 	tax = parse_taxonomy(taxonomy)
 	#parse blast result for each file at user cutoff
 	scores1 = blast_parser(blast1, evalue, coverage, identity)
 	scores2 = blast_parser(blast2, evalue, coverage, identity)
 	#find the results common for forward and reverse, rank them and get the LCA of the top 5%
-	classify = lca(scores1, scores2, keep, tax)
+	classified = lca(scores1, scores2, tax)
 	#print out the result
-	print_class(classify, identity)
+	print_class(classified)
 
 
 if __name__ == '__main__':
@@ -131,11 +115,10 @@ if __name__ == '__main__':
 	parser.add_argument('-1', '--blast1', help='Blast output for forward reads')
 	parser.add_argument('-2', '--blast2', help='Blast output for reverse reads')
 	parser.add_argument('-e', '--evalue', nargs='?', default=1E-5, type=float, help='Maximal evalue to consider blast match. Default: %(default)f')
-	parser.add_argument('-c', '--coverage', nargs='?', default=85.0, type=float, help='Minimal coverage of blast hit to consider match. Default: %(default)d per cent')
+	parser.add_argument('-c', '--coverage', nargs='?', default=90.0, type=float, help='Minimal coverage of blast hit to consider match. Default: %(default)d per cent')
 	parser.add_argument('-id', '--identity', nargs='?', default=99.0, type=float, help='Maximal residue identity of interest to consider a match. Default: %(default)d per cent')
-	parser.add_argument('--keep', nargs='?', default=100.0, type=float, help='Percentage of common top blast hits from each output file to consider for LCA. Default: %(default)d per cent')
 	parser.add_argument('-tax', '--taxonomy', help='Annotated taxonomy for last common ancestor inference')
 	args = parser.parse_args()
 
-	main(args.blast1, args.blast2, args.evalue, args.coverage, args.identity, args.keep, args.taxonomy)
+	main(args.blast1, args.blast2, args.evalue, args.coverage, args.identity, args.taxonomy)
 
