@@ -26,16 +26,17 @@ def blast_parser(blastfile, maxeval, mincov, minID):
 		reader = csv.reader(csvfile, delimiter="\t")
 		for row in reader:
 		##queryId, subjectId, percIdentity, alnLength, mismatchCount, gapOpenCount, queryStart, queryEnd, subjectStart, subjectEnd, eVal, bitScore
-			query = row[0]
-			hit = row[1]
-			percid = float(row[2])
-			length = int(row[3])
-			hlen = abs(float(row[9]) - float(row[8]))
-			evalue = float(row[10])
-			cov = 100*length/hlen
-			score = float(row[11])
-			if (evalue <= maxeval and percid >= minID and cov >= mincov):
-				scores[query][hit] = score
+			if row[0][0] != "#" and len(row) > 0:
+				query = row[0]
+				hit = row[1]
+				percid = float(row[2])
+				length = int(row[3])
+				hlen = abs(float(row[9]) - float(row[8]))
+				evalue = float(row[10])
+				cov = 100*length/hlen
+				score = float(row[11])
+				if (evalue <= maxeval and percid >= minID and cov >= mincov):
+					scores[query][hit] = score
 	return scores
 
 		
