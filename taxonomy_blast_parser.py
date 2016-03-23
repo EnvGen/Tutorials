@@ -19,7 +19,7 @@ __author__ = "Yue O Hu and Luisa W Hugerth"
 __email__ = "luisa.hugerth@scilifelab.se"
 
 
-def blast_parser(blastfile, maxeval, mincov, minID):
+def blast_parser(blastfile, maxeval, mincov, minID, length):
 	#Save all blast hits that make the cutoff in similarity and ID
 	scores = defaultdict(dict)
 	with open(blastfile) as csvfile:
@@ -31,12 +31,13 @@ def blast_parser(blastfile, maxeval, mincov, minID):
 					query = row[0]
 					hit = row[1]
 					percid = float(row[2])
-					length = int(row[3])
-					qlen = abs(float(row[7]) - float(row[6]))
+					hlength = int(row[7]) - int(row[6])
 					evalue = float(row[10])
-					cov = 100*length/hlen
+					cov = 100*hlength/length
 					score = float(row[11])
+					#print query + "\t" + hit + "\t" + str(evalue) + "\t" + str(percid) +"\t" + str(cov)
 					if (evalue <= maxeval and percid >= minID and cov >= mincov):
+						#print "Made the cutoff: " + query
 						scores[query][hit] = score
 	return scores
 
@@ -92,7 +93,7 @@ def print_class(classified):
 	for query, tax in classified.iteritems():
 		print query + "\t" + str(tax)
 	
-def main(blast1, blast2, evalue, coverage, identity, taxonomy):
+def main(blast1, blast2, evalue, coverage, identity, taxonomy, len1, len2):
 ##### METHOD #######
 #1 filter the blast result with cutoffs 90, 97 or 99 and aligned length 90% 
 #2 find the blast matches in both FWD and REV qualified items
@@ -101,8 +102,8 @@ def main(blast1, blast2, evalue, coverage, identity, taxonomy):
 	#parse taxonomy
 	tax = parse_taxonomy(taxonomy)
 	#parse blast result for each file at user cutoff
-	scores1 = blast_parser(blast1, evalue, coverage, identity)
-	scores2 = blast_parser(blast2, evalue, coverage, identity)
+	scores1 = blast_parser(blast1, evalue, coverage, identity, len1)
+	scores2 = blast_parser(blast2, evalue, coverage, identity, len2)
 	#find the results common for forward and reverse, rank them and get the LCA of the top 5%
 	classified = lca(scores1, scores2, tax)
 	#print out the result
@@ -114,10 +115,12 @@ if __name__ == '__main__':
 	parser.add_argument('-1', '--blast1', help='Blast output for forward reads')
 	parser.add_argument('-2', '--blast2', help='Blast output for reverse reads')
 	parser.add_argument('-e', '--evalue', nargs='?', default=1E-5, type=float, help='Maximal evalue to consider blast match. Default: %(default)f')
-	parser.add_argument('-c', '--coverage', nargs='?', default=90.0, type=float, help='Minimal coverage of blast hit to consider match. Default: %(default)d per cent')
+	parser.add_argument('-c', '--coverage', nargs='?', default=90.0, type=float, help='Minimal coverage of blast query to consider match. Default: %(default)d per cent')
 	parser.add_argument('-id', '--identity', nargs='?', default=99.0, type=float, help='Maximal residue identity of interest to consider a match. Default: %(default)d per cent')
 	parser.add_argument('-tax', '--taxonomy', help='Annotated taxonomy for last common ancestor inference')
+	parser.add_argument('-l1', '--length1', type=int, help="Length of reads from blast1")
+	parser.add_argument('-l2', '--length2', type=int, help="Length of reads from blast2")
 	args = parser.parse_args()
-
-	main(args.blast1, args.blast2, args.evalue, args.coverage, args.identity, args.taxonomy)
+	
+	main(args.blast1, args.blast2, args.evalue, args.coverage, args.identity, args.taxonomy, args.length1, args.length2)
 
