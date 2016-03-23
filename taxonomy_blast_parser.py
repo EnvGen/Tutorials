@@ -32,7 +32,7 @@ def blast_parser(blastfile, maxeval, mincov, minID):
 					hit = row[1]
 					percid = float(row[2])
 					length = int(row[3])
-					hlen = abs(float(row[9]) - float(row[8]))
+					qlen = abs(float(row[7]) - float(row[6]))
 					evalue = float(row[10])
 					cov = 100*length/hlen
 					score = float(row[11])
@@ -75,16 +75,13 @@ def lca(scores1, scores2, tax):
 		classify = ''
 		for tophit in topscores:
 			if classify == '' and tophit in tax:
-				#print str(tax[tophit])
 				classify = str(tax[tophit])
 			else:
-				#print str(tax[tophit])
 				#print "And the common pref is " + commonprefix([classify, str(tax[tophit])])
 				classify = commonprefix([classify, str(tax[tophit])])
-		if classify == '':
+		if classify == '' or classify == '[]':
 			classify = 'Unclassified;'
 		#take longest substr ending in ;
-		#print str(classify)
 		meaningful = re.match(".+;", classify)
 		classify = meaningful.group()
 		classdict[query] = classify
