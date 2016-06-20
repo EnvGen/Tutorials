@@ -2,6 +2,8 @@
 Assigning taxonomic classification to 18S amplicon datasets
 ==============
 
+This strategy was first elaborated by `Hu et al <http://journal.frontiersin.org/article/10.3389/fmicb.2016.00679/full>`_. Please cite this paper if using it.
+
 While there are many tools available for assigning taxonomy to 16S amplicons, and some resources for fungal ITS, 
 less work has been done on general eukaryotic 18S. Most 18S amplicons are also too long for reads to 
 cover the whole amplicon, leaving a gap in the middle. To deal with this and other complexities, Yue Hu has
