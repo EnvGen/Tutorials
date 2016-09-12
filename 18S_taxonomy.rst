@@ -8,9 +8,7 @@ While there are many tools available for assigning taxonomy to 16S amplicons, an
 less work has been done on general eukaryotic 18S. Most 18S amplicons are also too long for reads to 
 cover the whole amplicon, leaving a gap in the middle. To deal with this and other complexities, Yue Hu has
 developed this strategy for optimizing accuracy and efficiency of taxonomic assignment of environmental 18S reads, 
-based on the `PR2 database <http://ssu-rrna.org/>`_. A manuscript is under preparation, so please 
-check back and cite us if you use this work.
-
+based on the `PR2 database <http://ssu-rrna.org/>`_. 
 
 The first step is to blast each set of reads (forward and reverse) against a curated revision of the PR2 database. 
 While this database is very complete and thoroughly annotated, it includes in some cases ITS and 28S regions which
