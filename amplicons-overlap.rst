@@ -168,17 +168,32 @@ Example:
 
 The command:
 
-	perl otu_tables --threshold=INTEGER --samples=<FOLDER> --classification=<RDP_FILE> --sequences=<FASTA> --classifier=rdp
+	perl otu_tables --threshold=INTEGER --samples=<FOLDER> --classification=<RDP_FILE> --sequences=<FASTA> --classifier=rdp > <output_file>
 
 or
 
-	perl otu_tables --depth=INTEGER --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=<sina-cl/sina-ol>
+	perl otu_tables --depth=INTEGER --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=<sina-cl/sina-ol> > <output_file>
 
 
 Example:
 
-	perl otu_tables --threshold=50 –samples=all_reads --classification=otus97.num.fa_classified.txt --sequences=otus97.num.fa --classifier=rdp
+	perl otu_tables --threshold=50 –samples=all_reads --classification=otus97.num.fa_classified.txt --sequences=otus97.num.fa --classifier=rdp > otu_table.tsv
 
 or
 
-	perl otu_tables --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=sina-ol
+	perl otu_tables --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=sina-ol > otu_table.tsv
+
+**STEP 14: Elimiating 0 count OTUs**
+	During assignment with usearch_global, some OTU that had been predicted earlier might end up with no reads assigned to them, since other OTU centroids had better matches to those reads. These make your OTU tables unnecessarily large, so you can eliminate them. The same approach can be used if you want to eliminate singletons at this step, for instance.
+	
+The command:
+
+	awk '{for(i=2;i<=(NF-2);i++) t+=$i; if(t> <cutoff> ){print $0}; t=0}' <infile> > temp
+	
+	mv temp <infile>
+	
+Example:
+
+	awk '{for(i=2;i<=(NF-2);i++) t+=$i; if(t>0){print $0}; t=0}' otu_table.tsv > temp
+	
+	mv temp otu_table.tsv
