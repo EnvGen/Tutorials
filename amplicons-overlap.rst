@@ -184,16 +184,20 @@ or
 	perl otu_tables --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=sina-ol > otu_table.tsv
 
 **STEP 14: Elimiating 0 count OTUs**
-	During assignment with usearch_global, some OTU that had been predicted earlier might end up with no reads assigned to them, since other OTU centroids had better matches to those reads. These make your OTU tables unnecessarily large, so you can eliminate them. The same approach can be used if you want to eliminate singletons at this step, for instance.
+	During assignment with usearch_global, some OTU that had been predicted earlier might end up with no reads assigned to them, since other OTU centroids had better matches to those reads. These make your OTU tables unnecessarily large, so you can eliminate them. The same approach can be used if you want to eliminate singletons at this step, for instance. We'll take the opportunity to fix a litte problem with the header line.
 	
 The command:
 
-	awk '{for(i=2;i<=(NF-2);i++) t+=$i; if(t> <cutoff> ){print $0}; t=0}' <infile> > temp
+	awk 'NR>1{for(i=2;i<=(NF-2);i++) t+=$i; if(t> <cutoff> ){print $0}; t=0}' <infile> > temp
 	
-	mv temp <infile>
+	sed '1s/ /\\t/g' temp <infile>
+	
+	rm temp
 	
 Example:
 
-	awk '{for(i=2;i<=(NF-2);i++) t+=$i; if(t>0){print $0}; t=0}' otu_table.tsv > temp
+	awk 'NR>1{for(i=2;i<=(NF-2);i++) t+=$i; if(t>0){print $0}; t=0}' otu_table.tsv > temp
 	
-	mv temp otu_table.tsv
+	sed '1s/ /\\t/g'  temp otu_table.tsv
+	
+	rm temp
