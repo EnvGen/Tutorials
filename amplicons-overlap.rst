@@ -190,7 +190,7 @@ The command:
 
 	awk 'NR>1{for(i=2;i<=(NF-2);i++) t+=$i; if(t> <cutoff> ){print $0}; t=0}' <infile> > temp
 	
-	sed '1s/ /\\t/g' temp <infile>
+	sed '1s/ /\\t/g' temp > <infile>
 	
 	rm temp
 	
@@ -198,6 +198,6 @@ Example:
 
 	awk 'NR>1{for(i=2;i<=(NF-2);i++) t+=$i; if(t>0){print $0}; t=0}' otu_table.tsv > temp
 	
-	sed '1s/ /\\t/g'  temp otu_table.tsv
+	sed '1s/ /\\t/g'  temp > otu_table.tsv
 	
 	rm temp
