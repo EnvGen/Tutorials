@@ -96,6 +96,18 @@ The command:
 Example:
 
 	./usearch7 -sortbysize uniques.fa -output uniques.sort.fa -minsize 2
+	
+	
+**STEP 8: Sorting again...**
+	Unfortunately, Usearch7 requires amplicons to be sorted by decreasing length. If you're using a different version of Usearch without this issue, you can skip this step. Alternatively, you can skip this step by using cluster_fast instead of cluster_smallmem.
+
+The command:
+
+	./usearch7 -sortbylength <infile> -output <outfile> -minsize <minimal cluster size>
+
+Example:
+
+	./usearch7 -sortbylength uniques.sort.fa -output uniques.sort2.fa
 
 
 **STEP 9: Clustering**
@@ -107,15 +119,15 @@ The command:
 	./usearch7 -cluster_smallmem <infile> -id <identity> -uc <uc_file> -idprefix <integer> -idsuffix <integer> --centroids <fasta output>
 
 Example:
-	./usearch7 -cluster_smallmem all.sort.fa -id 0.99 -uc all.99.uc -idprefix 18 -idsuffix 18 –centroids all.99.fa -sizein -sizeout
+	./usearch7 -cluster_smallmem uniques.sort2.fa -id 0.99 -uc all.99.uc -idprefix 18 -idsuffix 18 –centroids all.99.fa -sizein -sizeout
 
 	./usearch7 -cluster_smallmem all.99.fa -id 0.98 -uc all.98.uc -idprefix 18 -idsuffix 18 –centroids all.98.fa -sizein -sizeout
 
 	./usearch7 -cluster_smallmem all.98.fa -id 0.97 -uc all.97.uc -idprefix 18 -idsuffix 18 –centroids all.97.fa -sizein -sizeout
 
 
-**STEP 9: Renaming OTU**
-	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded `here <http://drive5.com/python/>`_. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial.
+**STEP 10: Renaming OTU**
+	Our OTU so far have the name of the read ID of their centroid, which is simply not pleasant. Therefore, we can change their names now to OTU_1, OTU_2 etc. This script can be downloaded `here <http://drive5.com/python/>`_. You can choose any name for your OTUs, but please use OTU_ if you want to keep following this tutorial. If you have sorted your reads by length before, it can be nice to sort them by size again... This way, you'll know that OTU1 is the most abundant 1, OTU2 is the second most abundant etc.
 
 The command:
 
@@ -125,7 +137,7 @@ Example:
 
 	python fasta_number.py otus97.fa OTU_ > otus97num.fa
 
-**STEP 10: Assigning reads to OTU**
+**STEP 11: Assigning reads to OTU**
 	We will now look at each of our original fasta files and assign them to OTU. At this point, take the opportunity to make a directory just for your new cluster files. This is important downstream. You're also requested to say how similar your sample must be to the centroid. This must be compatible with the radius you used for clustering. For example, if you used a radius of 3%, use now a similarity of 0.97.
 
 	In this step you may see that most reads are identified as chimera and just a small part are being recruited to OTU. That's a bug in the screen output that won't affect your data.
@@ -139,11 +151,11 @@ Example:
 	./usearch7 -usearch_global reads1.merge.fa -db otus97.num.fa -strand plus -id 0.97 -uc 	clusters/reads1.uc
 
 
-**STEP 11: Classifying OTU**
+**STEP 12: Classifying OTU**
 	If you're working with 16S, I recommend using the online `RDP classifier <http://rdp.cme.msu.edu/classifier/classifier.jsp>`_. Download the fullrank result when you're done. You can also install RDP and run it locally. If you're working with 18S, 23S or 28S, I recommend the SINA classifier. Its `online version <http://www.arb-silva.de/aligner/>`_ only accepts 1000 sequences at a time. You can choose to divide your file into chunks of 1000 sequences, and then concatenate the results, or you can download and run the `SINA classifier locally <http://www.arb-silva.de/no_cache/download/archive/SINA/builds/2013/build-103/>`_.
 
 
-**STEP 12: Creating an OTU table**
+**STEP 13: Creating an OTU table**
 	There are scripts on the Usearch homepage to do this. Here we use another alternative. It'll produce a table with OTUS on the lines, samples on the columns and the classification for each read and the sequence of the representative at the end of each line.
 
 	If you use the RDP classifier, you can choose a confidence cut-off – classification assignments with lower confidence will be disregarded. With either RDP or SINA you also have the choice of assigning a fixed depth of classification, and all finer classifications will be disregarded. If you want the whole classification without any cut-offs, choose 0 as minimal confidence and a large number as maximum depth. If you don't give any parameters, a cut-off of 50% confidence will be taken for RDP files and a depth of 5 for Silva files.
@@ -156,17 +168,36 @@ Example:
 
 The command:
 
-	perl otu_tables --threshold=INTEGER --samples=<FOLDER> --classification=<RDP_FILE> --sequences=<FASTA> --classifier=rdp
+	perl otu_tables --threshold=INTEGER --samples=<FOLDER> --classification=<RDP_FILE> --sequences=<FASTA> --classifier=rdp > <output_file>
 
 or
 
-	perl otu_tables --depth=INTEGER --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=<sina-cl/sina-ol>
+	perl otu_tables --depth=INTEGER --samples=<FOLDER> --classification=<SINA_FILE> --sequences=<FASTA> --classifier=<sina-cl/sina-ol> > <output_file>
 
 
 Example:
 
-	perl otu_tables --threshold=50 –samples=all_reads --classification=otus97.num.fa_classified.txt --sequences=otus97.num.fa --classifier=rdp
+	perl otu_tables --threshold=50 –samples=all_reads --classification=otus97.num.fa_classified.txt --sequences=otus97.num.fa --classifier=rdp > otu_table.tsv
 
 or
 
-	perl otu_tables --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=sina-ol
+	perl otu_tables --depth=5 --samples=all_reads --classification=otus97.csv --sequences=otus97.num.fa --classifier=sina-ol > otu_table.tsv
+
+**STEP 14: Elimiating 0 count OTUs**
+	During assignment with usearch_global, some OTU that had been predicted earlier might end up with no reads assigned to them, since other OTU centroids had better matches to those reads. These make your OTU tables unnecessarily large, so you can eliminate them. The same approach can be used if you want to eliminate singletons at this step, for instance. We'll take the opportunity to fix a litte problem with the header line.
+	
+The command:
+
+	awk 'NR>1{for(i=2;i<=(NF-2);i++) t+=$i; if(t> <cutoff> ){print $0}; t=0}' <infile> > temp
+	
+	sed '1s/ /\\t/g' temp > <infile>
+	
+	rm temp
+	
+Example:
+
+	awk 'NR>1{for(i=2;i<=(NF-2);i++) t+=$i; if(t>0){print $0}; t=0}' otu_table.tsv > temp
+	
+	sed '1s/ /\\t/g'  temp > otu_table.tsv
+	
+	rm temp
