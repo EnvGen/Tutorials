@@ -6,12 +6,13 @@ otu_tables
 
 =head1 SYNOPSIS
 
-	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] --classifier=<sina/rdp> --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
+	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] [--names=<FILE>]--classifier=<sina/rdp> --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
 
 
 		--samples: folder containing the -usearch_global output for each sample to be analysed,
 				and nothing else (important!)
 		--classification: allrank result from RDP classifier or SINA
+		--sequences: fasta file with representatives from each OTU
 		--classifier: which ever was used to generate the classification; default sina-cl
 			sina-cl: command line sina
 			sina-ol: online sina
@@ -19,7 +20,7 @@ otu_tables
 			tsv: tsv file with OTU ID on column 1 and classification on the last column
 		--threshold: minimum precentage confidence level to retain an RDP classification; default 70
 		--depth: maximum taxonomic depth to retain a SINA classification; default 5
-		--sequences: fasta file with representatives from each OTU
+		--names: tsv connecting sample file name to sample name. If not provided, file name is used
 		--help: This info.
 	    
 =head1 AUTHOR
@@ -41,6 +42,7 @@ my $verbose = 0;
 my $samples_folder;
 my $class_file;
 my $sequences;
+my $name_file="";
 my $classifier="sina-cl";
 my $threshold=70;
 my $depth=5;
@@ -49,6 +51,7 @@ GetOptions(
   "classification=s" => \$class_file,
   "threshold=i" => \$threshold,
   "classifier=s" => \$classifier,
+  "names=s" => \$name_file,
   "sequences=s" => \$sequences,
   "depth=i" => \$depth,
   "help!" => \$help,
@@ -67,6 +70,10 @@ pod2usage(-msg => "Classifier must be one of the four allowed ones", -exitval =>
 
 pod2usage(-msg => "Need a fasta file", -exitval => 1) unless $sequences;
 my $seqfile = Bio::SeqIO->new(-file=>"$sequences", -format => "fasta") or die "Can't open $sequences";
+
+if ($name_file ne ""){
+	open NAMES, $name_file or die "Cannot open $name_file";
+}
 
 sub rdp_parse{
 	my $line = $_[0];
@@ -205,9 +212,18 @@ while (my $seq = $seqfile->next_seq){
 	$sequences{$seq->display_id} = uc($seq->seq);
 }
 
+my %names;
+if ($name_file ne ""){
+	while (my $line = <NAMES>){
+		chomp $line;
+		$line=~/^(\S+)\t(\S+)/;
+		$names{$1} = $2;
+	}
+}
+close NAMES;
+
 my %samples;
 my @samples = readdir(DIR);
-@samples = sort (@samples);
 shift @samples; shift @samples;
 foreach my $sample (@samples){
 	open (SAMPLE, "$samples_folder/$sample") or die "Failed to open $sample";
@@ -221,9 +237,18 @@ foreach my $sample (@samples){
 	close SAMPLE;
 }
 close DIR;
+@samples = sort(@samples);
 
-$"="\t"; ## Sets the separator for arrays as tab
-print "OTU\t@samples\tTaxonomy\tCentroid\n";
+print "OTU\t";
+foreach my $sample (@samples){
+	if (exists($names{$sample})){
+		print $names{$sample}."\t";
+	}
+	else{
+		print $sample."\t";
+	}
+}
+print "Taxonomy\tCentroid\n";
 
 while (my $line = <CLASS>){
 	chomp $line;
