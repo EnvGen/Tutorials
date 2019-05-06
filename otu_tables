@@ -1,4 +1,5 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
+use warnings;
 
 =head1 NAME
 
@@ -6,7 +7,7 @@ otu_tables
 
 =head1 SYNOPSIS
 
-	otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] [--names=<FILE>]--classifier=<sina/rdp> --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
+	make_otu_tables [--help] [--verbose] [--threshold=INTEGER] [--depth=INTEGER] [--names=<FILE>]--classifier=<sina/rdp> --samples=<FOLDER> --classification=<FILE> --sequences=<FASTA>
 
 
 		--samples: folder containing the -usearch_global output for each sample to be analysed,
@@ -89,9 +90,9 @@ sub rdp_parse{
 		if (exists ${$samples_ref}{$otu}{$sample}){
 			$print = $print.${$samples_ref}{$otu}{$sample}."\t";
 		}
-		 else{
+		else{
 			$print = $print."0\t";
-		 }
+		}
 	}
 	my $count = 0;
 	my $classified = 'F';
@@ -125,9 +126,9 @@ sub sina_cl_parse{
 		if (exists ${$samples_ref}{$otu}{$sample}){
 			$print = $print.${$samples_ref}{$otu}{$sample}."\t";
 		}
-		 else{
+		else{
 			$print = $print."0\t";
-		 }
+		}
 	}
 	my $taxonomy=$fields[-5];
 	my @taxonomy=split(';',$taxonomy);
@@ -156,9 +157,9 @@ sub sina_ol_parse{
 		if (exists ${$samples_ref}{$otu}{$sample}){
 			$print = $print.${$samples_ref}{$otu}{$sample}."\t";
 		}
-		 else{
+		else{
 			$print = $print."0\t";
-		 }
+		}
 	}
 	my $taxonomy=$fields[-1];
 	chop $taxonomy;
@@ -188,9 +189,9 @@ sub tsv_parse{
 		if (exists ${$samples_ref}{$otu}{$sample}){
 			$print = $print.${$samples_ref}{$otu}{$sample}."\t";
 		}
-		 else{
+		else{
 			$print = $print."0\t";
-		 }
+		}
 	}
 	my $taxonomy=$fields[-1];
 	chop $taxonomy;
@@ -258,14 +259,14 @@ while (my $line = <CLASS>){
 			rdp_parse($line, \@samples, \%samples, \%sequences, $threshold);
 		}
 	}
-	 elsif(($classifier eq "sina-cl") and ($line!~/name/) and ($line ne "")){
+	elsif(($classifier eq "sina-cl") and ($line!~/name/) and ($line ne "")){
 		sina_cl_parse($line, \@samples, \%samples, \%sequences, $depth);
-	 }
-	 elsif(($classifier eq "sina-ol") and ($line!~/job_id/) and ($line ne "")){
+	}
+	elsif(($classifier eq "sina-ol") and ($line!~/job_id/) and ($line ne "")){
 		sina_ol_parse($line, \@samples, \%samples, \%sequences, $depth);
-	 }
-	 elsif($classifier eq "tsv" and ($line ne "")){
+	}
+	elsif($classifier eq "tsv" and ($line ne "")){
 		tsv_parse($line, \@samples, \%samples, \%sequences, $depth);		
-	 }
+	}
 }
 close CLASS;

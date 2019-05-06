@@ -46,12 +46,12 @@ def main(infiles, names, depths):
 	for infile in filelist:
 		taxdict, leveldict = parsetax(taxdict, leveldict, infile, namelist[count], depthlist[count])
 		count += 1
-	print "Seq_id\tSim_level\tTaxonomy"
-	for query, tax in taxdict.iteritems():
+	print("Seq_id\tSim_level\tTaxonomy")
+	for query, tax in taxdict.items():
 		if (tax == 'Unclassified;'):
-			print query + "\tUnclassified\tUnclassified;"
+			print(query + "\tUnclassified\tUnclassified;")
 		else:
-			print query + "\t" + leveldict[query] + "\t" + tax 
+			print(query + "\t" + leveldict[query] + "\t" + tax)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Combines taxonomic assignment at different stringency levels')

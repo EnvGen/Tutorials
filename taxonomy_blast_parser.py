@@ -54,7 +54,7 @@ def parse_taxonomy(taxfile):
 
 def lca(scores1, scores2, tax):
 	classdict = dict()
-	for query, hit in scores1.iteritems():
+	for query, hit in scores1.items():
 		scr1 = set(hit.keys())
 		scr2 = set(scores2[query].keys())
 		#find the common hits of both dictionaries
@@ -89,9 +89,9 @@ def lca(scores1, scores2, tax):
 	return classdict
 
 def print_class(classified):
-	print "Query\tTaxonomy"
-	for query, tax in classified.iteritems():
-		print query + "\t" + str(tax)
+	print("Query\tTaxonomy")
+	for query, tax in classified.items():
+		print(query + "\t" + str(tax))
 	
 def main(blast1, blast2, evalue, coverage, identity, taxonomy, len1, len2):
 ##### METHOD #######
