@@ -1,6 +1,8 @@
 Tutorials
 =========
 
+No active work is currently being done on this branch, except very rare bug fixes. For up-to-date workflows, see https://github.com/ctmrbio/ctmr-amplicon 
+
 A few guides in how to use our tools, and some other people's tools as well.
 All scripts mentioned in the tutorials are also included in this folder.
 
